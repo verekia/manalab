@@ -1,4 +1,4 @@
-import { Vec3, PlacementTool, Entity, StageConfig, LayerRef } from './types'
+import { Vec3, PlacementTool, Entity, StageConfig, LayerRef, LayerData } from './types'
 
 // ── Action types ─────────────────────────────────────────
 export type EditorAction =
@@ -21,6 +21,10 @@ export type EditorAction =
   | { type: 'DUPLICATE_ENTITY'; entityId: string; layerId: string; sceneId: string; newId: string }
   | { type: 'UPDATE_ENTITY_FIELD'; entityId: string; layerId: string; sceneId: string; field: string; value: unknown }
   | { type: 'TRANSFORM_ENTITY'; entityId: string; layerId: string; sceneId: string; position: Vec3; rotation: Vec3; scale: Vec3 }
+
+  // Load / save
+  | { type: 'LOAD_LAYERS'; sceneLayers: Record<string, Record<string, LayerData>> }
+  | { type: 'MARK_SAVED' }
 
   // UI (non-undoable)
   | { type: 'SET_TRANSFORM_MODE'; mode: 'translate' | 'rotate' | 'scale' }

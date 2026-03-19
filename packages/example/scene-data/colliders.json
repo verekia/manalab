@@ -1,0 +1,31 @@
+{
+  "scene": "island_overworld",
+  "layer": "colliders",
+  "type": "collider",
+  "entities": [
+    {
+      "id": "e_4purdu1",
+      "shape": "box",
+      "position": [
+        -2.173,
+        0,
+        -6.119
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": [
+        1,
+        2,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    }
+  ]
+}

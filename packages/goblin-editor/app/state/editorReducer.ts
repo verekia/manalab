@@ -215,6 +215,8 @@ function uiReducer(ui: UIState, action: EditorAction): UIState {
       return { ...ui, showStageEditor: !ui.showStageEditor }
     case 'TOGGLE_EXPORT_DIALOG':
       return { ...ui, showExportDialog: !ui.showExportDialog }
+    case 'MARK_SAVED':
+      return { ...ui, dirty: false }
     default:
       return ui
   }
@@ -229,7 +231,7 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       past: state.past.slice(0, -1),
       present: prev,
       future: [cloneDoc(state.present), ...state.future],
-      ui: state.ui,
+      ui: { ...state.ui, dirty: true },
     }
   }
 
@@ -240,7 +242,29 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       past: [...state.past, cloneDoc(state.present)],
       present: next,
       future: state.future.slice(1),
-      ui: state.ui,
+      ui: { ...state.ui, dirty: true },
+    }
+  }
+
+  // Handle loading layer data from disk
+  if (action.type === 'LOAD_LAYERS') {
+    return {
+      ...state,
+      present: {
+        ...state.present,
+        sceneLayers: action.sceneLayers,
+      },
+      past: [],
+      future: [],
+      ui: { ...state.ui, dirty: false },
+    }
+  }
+
+  // Handle mark saved
+  if (action.type === 'MARK_SAVED') {
+    return {
+      ...state,
+      ui: { ...state.ui, dirty: false },
     }
   }
 
@@ -267,6 +291,7 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
           },
         },
       },
+      ui: { ...withUndo.ui, dirty: true },
     }
   }
 
@@ -277,7 +302,7 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
     return {
       ...withUndo,
       present: newDoc,
-      ui: uiReducer(withUndo.ui, action),
+      ui: { ...uiReducer(withUndo.ui, action), dirty: true },
     }
   }
 

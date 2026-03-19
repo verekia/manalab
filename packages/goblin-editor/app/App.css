@@ -155,6 +155,50 @@ html, body, #root {
   cursor: not-allowed;
 }
 
+/* ── Save Indicator ─────────────────────────────────────── */
+.save-indicator-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.save-indicator {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.save-indicator::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.save-indicator.saved {
+  color: #4ecdc4;
+}
+
+.save-indicator.saved::before {
+  background: #4ecdc4;
+}
+
+.save-indicator.unsaved {
+  color: var(--selection);
+}
+
+.save-indicator.unsaved::before {
+  background: var(--selection);
+}
+
+.save-btn {
+  font-size: 10px !important;
+  padding: 2px 8px !important;
+}
+
 /* ── Status Bar ──────────────────────────────────────────── */
 .status-bar {
   height: 24px;

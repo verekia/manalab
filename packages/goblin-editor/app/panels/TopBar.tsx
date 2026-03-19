@@ -4,9 +4,10 @@ import { EditorAction } from '../state/actions'
 interface TopBarProps {
   state: EditorState
   dispatch: React.Dispatch<EditorAction>
+  onSave: () => void
 }
 
-export default function TopBar({ state, dispatch }: TopBarProps) {
+export default function TopBar({ state, dispatch, onSave }: TopBarProps) {
   const { ui, past, future, present } = state
   const scenes = Object.entries(present.project.scenes)
 
@@ -71,6 +72,19 @@ export default function TopBar({ state, dispatch }: TopBarProps) {
         >
           Redo
         </button>
+      </div>
+
+      <div className="topbar-separator" />
+
+      <div className="save-indicator-group">
+        <span className={`save-indicator ${ui.dirty ? 'unsaved' : 'saved'}`}>
+          {ui.dirty ? 'Unsaved changes' : 'Saved'}
+        </span>
+        {ui.dirty && (
+          <button className="topbar-btn save-btn" onClick={onSave} title="Save (Ctrl+S)">
+            Save
+          </button>
+        )}
       </div>
 
       <div className="topbar-spacer" />

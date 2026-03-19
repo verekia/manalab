@@ -174,6 +174,7 @@ export interface UIState {
   placementTool: PlacementTool
   showStageEditor: boolean
   showExportDialog: boolean
+  dirty: boolean
 }
 
 // ── Undoable document state ──────────────────────────────

@@ -1,7 +1,6 @@
-import { EditorProject, EditorState, DocumentState } from './types'
+import { defineConfig } from 'goblin-editor'
 
-export const defaultProject: EditorProject = {
-  version: 1,
+export default defineConfig({
   assetLibrary: {
     decorations: {
       oak_tree: { label: 'Oak Tree', tags: ['tree', 'forest'] },
@@ -52,14 +51,14 @@ export const defaultProject: EditorProject = {
           name: 'Decorations',
           type: 'decoration',
           visible: true,
-          file: 'island_overworld/decorations.json',
+          file: 'decorations.json',
         },
         {
           id: 'colliders',
           name: 'Colliders',
           type: 'collider',
           visible: true,
-          file: 'island_overworld/colliders.json',
+          file: 'colliders.json',
         },
       ],
     },
@@ -83,46 +82,20 @@ export const defaultProject: EditorProject = {
       description: 'Physics collision volumes',
       renderMode: 'wireframe',
       entitySchema: {
-        shape: { type: 'enum', options: ['cylinder', 'box'], label: 'Shape', default: 'cylinder' },
+        shape: {
+          type: 'enum',
+          options: ['cylinder', 'box'],
+          label: 'Shape',
+          default: 'cylinder',
+        },
         position: { type: 'vec3', label: 'Position', default: [0, 0, 0] },
         rotation: { type: 'vec3', label: 'Rotation (rad)', default: [0, 0, 0] },
-        dimensions: { type: 'vec3', label: 'Dimensions (r/w, h, r/d)', default: [1, 2, 1] },
+        dimensions: {
+          type: 'vec3',
+          label: 'Dimensions (r/w, h, r/d)',
+          default: [1, 2, 1],
+        },
       },
     },
   },
-}
-
-const defaultDoc: DocumentState = {
-  project: defaultProject,
-  sceneLayers: {
-    island_overworld: {
-      decorations: {
-        scene: 'island_overworld',
-        layer: 'decorations',
-        type: 'decoration',
-        entities: [],
-      },
-      colliders: {
-        scene: 'island_overworld',
-        layer: 'colliders',
-        type: 'collider',
-        entities: [],
-      },
-    },
-  },
-}
-
-export const initialEditorState: EditorState = {
-  past: [],
-  present: defaultDoc,
-  future: [],
-  ui: {
-    currentSceneId: 'island_overworld',
-    activeLayerId: 'decorations',
-    selectedEntityId: null,
-    transformMode: 'translate',
-    placementTool: null,
-    showStageEditor: false,
-    showExportDialog: false,
-  },
-}
+})
