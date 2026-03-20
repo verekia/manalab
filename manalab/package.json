@@ -22,7 +22,7 @@
     "public"
   ],
   "scripts": {
-    "build": "tsup && cp ../../README.md .",
+    "build": "tsup && cp ../README.md .",
     "dev": "tsup --watch"
   },
   "dependencies": {

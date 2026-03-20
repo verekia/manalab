@@ -4,23 +4,24 @@ Schema-driven 3D scene editor for game development. Users define layer types, en
 
 ## Repository Structure
 
-Monorepo with two packages (`packages/*` workspaces):
+Monorepo with two workspaces at the root:
 
-- **`packages/manalab`** — The editor library + CLI tool
-- **`packages/example`** — Example project using the editor
+- **`manalab`** — The editor library + CLI tool
+- **`example`** — Example project using the editor
 
 ## Quick Start
 
 ```sh
-cd packages/manalab && bun run build   # Build the library (tsup)
-cd packages/example && bun run manalab # Start the editor (port 7320)
+cd manalab && bun run build   # Build the library (tsup)
+cd example && bun run manalab # Start the editor (port 7320)
 ```
 
 ## Architecture
 
-### Editor Package (`packages/manalab`)
+### Editor Package (`manalab`)
 
 **Published surface** (`src/`):
+
 - `src/types.ts` — All shared types (SchemaField union, Entity, LayerData, UIState, etc.)
 - `src/config.ts` — `defineConfig()` helper for type-safe config files
 - `src/index.ts` — Re-exports types
@@ -30,12 +31,14 @@ cd packages/example && bun run manalab # Start the editor (port 7320)
 **Editor app** (`app/`):
 
 State management (React `useReducer`, no external libs):
+
 - `app/state/types.ts` — Re-exports from `src/types.ts`
 - `app/state/actions.ts` — `EditorAction` discriminated union
 - `app/state/editorReducer.ts` — Undo/redo stack, document mutations, UI state
 - `app/state/defaultProject.ts` — Initial state from config
 
 Panels:
+
 - `app/App.tsx` — Root component, keyboard shortcuts, save/load, layout
 - `app/panels/InspectorPanel.tsx` — Recursive `FieldEditor` for all schema field types including nested objects/arrays
 - `app/panels/EntityList.tsx` — Entity rows with expandable sub-items
@@ -46,16 +49,18 @@ Panels:
 - `app/panels/ExportDialog.tsx` — JSON export preview
 
 Viewport:
+
 - `app/viewport/ThreeViewport.tsx` — Three.js scene sync, raycasting, transform controls, sub-item mesh rendering
 - `app/viewport/entityRenderers.ts` — Mesh factories: placeholders (gltf), wireframes (colliders), markers (quests), sub-item cubes, enemy capsules
 - `app/viewport/stageRenderer.ts` — Lighting, backdrops, fog
 
 Utilities:
+
 - `app/lib/schemaDefaults.ts` — `getFieldDefault()`, `buildDefaultEntity()`, `buildArrayItemDefault()`
 - `app/lib/idGen.ts` — Short random ID generator
 - `app/lib/math.ts` — `roundVec3()`
 
-### Example Package (`packages/example`)
+### Example (`example`)
 
 - `manalab.config.ts` — Defines asset library, scenes, layer types (decoration, collider, quest)
 - `scene-data/*.json` — Persisted entity data per layer
@@ -63,6 +68,7 @@ Utilities:
 ## Key Concepts
 
 **Layer types** define how entities are rendered and edited. Each has a `renderMode`:
+
 - `gltf` — Decoration assets (placeholder meshes for now)
 - `wireframe` — Collision volumes
 - `markers` — Abstract entities like quests (orange sphere + pole)
