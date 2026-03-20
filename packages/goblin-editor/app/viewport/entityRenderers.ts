@@ -176,7 +176,67 @@ function createMarkerMesh(entity: Entity): THREE.Group {
 
 const SUB_ITEM_COLORS = ['#4ecdc4', '#5c7cfa', '#ff6b9d', '#ffd93d', '#6bcb77', '#c084fc']
 
-export function createSubItemMesh(fieldKey: string, index: number, item: Record<string, unknown>): THREE.Group {
+function createEnemyMesh(index: number, item: Record<string, unknown>): THREE.Group {
+  const group = new THREE.Group()
+
+  // Body — capsule
+  const body = new THREE.Mesh(
+    new THREE.CapsuleGeometry(0.3, 0.5, 8, 12),
+    new THREE.MeshStandardMaterial({ color: '#8b2e2e' })
+  )
+  body.position.y = 0.85
+  group.add(body)
+
+  // Face — circle on front
+  const face = new THREE.Mesh(
+    new THREE.CircleGeometry(0.2, 16),
+    new THREE.MeshStandardMaterial({ color: '#d4a574' })
+  )
+  face.position.set(0, 1.0, 0.31)
+  group.add(face)
+
+  // Left eye
+  const eyeGeo = new THREE.SphereGeometry(0.045, 8, 8)
+  const eyeMat = new THREE.MeshStandardMaterial({ color: '#111' })
+  const leftEye = new THREE.Mesh(eyeGeo, eyeMat)
+  leftEye.position.set(-0.08, 1.06, 0.34)
+  group.add(leftEye)
+
+  // Right eye
+  const rightEye = new THREE.Mesh(eyeGeo, eyeMat)
+  rightEye.position.set(0.08, 1.06, 0.34)
+  group.add(rightEye)
+
+  // Label
+  const label = (item.id as string) || (item.type as string) || `#${index}`
+  const canvas = document.createElement('canvas')
+  canvas.width = 128
+  canvas.height = 64
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = 'rgba(0,0,0,0.6)'
+  ctx.roundRect(0, 0, 128, 64, 8)
+  ctx.fill()
+  ctx.fillStyle = '#e74c3c'
+  ctx.font = 'bold 24px monospace'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(label.slice(0, 10), 64, 32)
+
+  const tex = new THREE.CanvasTexture(canvas)
+  const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true })
+  const sprite = new THREE.Sprite(spriteMat)
+  sprite.position.y = 1.8
+  sprite.scale.set(1, 0.5, 1)
+  group.add(sprite)
+
+  return group
+}
+
+export function createSubItemMesh(fieldKey: string, index: number, item: Record<string, unknown>, meshType?: string): THREE.Group {
+  if (meshType === 'enemy') {
+    return createEnemyMesh(index, item)
+  }
+
   const group = new THREE.Group()
   const color = SUB_ITEM_COLORS[index % SUB_ITEM_COLORS.length]
 

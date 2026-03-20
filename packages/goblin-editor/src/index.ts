@@ -14,6 +14,7 @@ export type {
   EnumArrayField,
   ObjectField,
   ArrayField,
+  SubItemPath,
   EntitySchema,
   LayerTypeDef,
   AssetEntry,

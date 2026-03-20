@@ -1,4 +1,4 @@
-import { EditorState, DocumentState, UIState, LayerData } from './types'
+import { EditorState, DocumentState, UIState, LayerData, SubItemPath } from './types'
 import { EditorAction } from './actions'
 
 const MAX_HISTORY = 50
@@ -10,6 +10,18 @@ function cloneDoc(doc: DocumentState): DocumentState {
 function pushUndo(state: EditorState): EditorState {
   const past = [...state.past, cloneDoc(state.present)].slice(-MAX_HISTORY)
   return { ...state, past, future: [] }
+}
+
+function updateNestedItem(
+  obj: Record<string, unknown>,
+  path: SubItemPath,
+  update: Record<string, unknown>
+): Record<string, unknown> {
+  if (path.length === 0) return { ...obj, ...update }
+  const [head, ...rest] = path
+  const arr = [...(obj[head.field] as Record<string, unknown>[])]
+  arr[head.index] = updateNestedItem(arr[head.index], rest, update)
+  return { ...obj, [head.field]: arr }
 }
 
 function documentReducer(
@@ -124,7 +136,7 @@ function documentReducer(
     }
 
     case 'TRANSFORM_SUB_ITEM': {
-      const { entityId, layerId, sceneId, arrayField, itemIndex, positionField, position } = action
+      const { entityId, layerId, sceneId, path, positionField, position } = action
       const layer = doc.sceneLayers[sceneId]?.[layerId]
       if (!layer) return null
       return {
@@ -137,9 +149,7 @@ function documentReducer(
               ...layer,
               entities: layer.entities.map((e) => {
                 if (e.id !== entityId) return e
-                const arr = [...(e[arrayField] as Record<string, unknown>[] || [])]
-                arr[itemIndex] = { ...arr[itemIndex], [positionField]: position }
-                return { ...e, [arrayField]: arr }
+                return updateNestedItem(e, path, { [positionField]: position }) as typeof e
               }),
             },
           },

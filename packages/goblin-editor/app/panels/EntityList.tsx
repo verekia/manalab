@@ -105,7 +105,7 @@ function EntityRow({ entityId, label, entity, isSelected, arrayFields, ui, dispa
         return items.map((item, index) => {
           const path = `${entityId}:${fieldKey}:${index}`
           const isHidden = ui.hiddenSubItems.includes(path)
-          const isSubSelected = ui.selectedSubItem?.field === fieldKey && ui.selectedSubItem?.index === index
+          const isSubSelected = ui.selectedSubItem?.[0]?.field === fieldKey && ui.selectedSubItem?.[0]?.index === index
           const summary = Object.values(item).find((v) => typeof v === 'string' && v) as string || `#${index}`
 
           return (
@@ -114,7 +114,7 @@ function EntityRow({ entityId, label, entity, isSelected, arrayFields, ui, dispa
               className={`sub-item-row ${isSubSelected ? 'selected' : ''}`}
               onClick={() => {
                 dispatch({ type: 'SELECT_ENTITY', entityId })
-                dispatch({ type: 'SELECT_SUB_ITEM', subItem: { field: fieldKey, index } })
+                dispatch({ type: 'SELECT_SUB_ITEM', subItem: [{ field: fieldKey, index }] })
               }}
             >
               <span className="sub-item-label">#{index} {summary}</span>

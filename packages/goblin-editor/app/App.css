@@ -789,6 +789,10 @@ html, body, #root {
   border-color: var(--selection);
 }
 
+.array-item.on-path {
+  border-color: rgba(255, 204, 0, 0.3);
+}
+
 .array-item-header {
   display: flex;
   align-items: center;
@@ -801,6 +805,14 @@ html, body, #root {
 
 .array-item-header:hover {
   background: rgba(255, 255, 255, 0.05);
+}
+
+.array-item-header.selectable {
+  cursor: pointer;
+}
+
+.array-item-header.selectable:hover {
+  background: rgba(255, 204, 0, 0.08);
 }
 
 .array-item-chevron {

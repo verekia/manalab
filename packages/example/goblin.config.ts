@@ -119,6 +119,7 @@ export default defineConfig({
           itemPositionField: 'waypoint',
           itemFields: {
             waypoint: { type: 'vec3', label: 'Waypoint', default: [0, 0, 0] },
+            enemyId: { type: 'string', label: 'Enemy ID (kill target)', default: '' },
             goal: { type: 'string', label: 'Goal', default: '' },
             dialogue: {
               type: 'array',
@@ -126,6 +127,18 @@ export default defineConfig({
               itemFields: {
                 name: { type: 'string', label: 'Speaker', default: '' },
                 text: { type: 'string', label: 'Text', default: '' },
+              },
+            },
+            newEnemies: {
+              type: 'array',
+              label: 'New Enemies',
+              itemPositionField: 'position',
+              itemMeshType: 'enemy',
+              itemFields: {
+                id: { type: 'string', label: 'ID (optional)', default: '' },
+                type: { type: 'string', label: 'Type', default: '' },
+                position: { type: 'vec3', label: 'Position', default: [0, 0, 0] },
+                rotation: { type: 'vec3', label: 'Rotation', default: [0, 0, 0] },
               },
             },
           },

@@ -88,8 +88,7 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
             entityId: obj.userData.entityId,
             layerId: s.ui.activeLayerId,
             sceneId: s.ui.currentSceneId,
-            arrayField: obj.userData.fieldKey,
-            itemIndex: obj.userData.itemIndex,
+            path: obj.userData.subItemPath,
             positionField: obj.userData.positionField,
             position: pos,
           })
@@ -174,7 +173,7 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
         if (hitObj.userData.entityId) {
           if (hitObj.userData.isSubItem) {
             d({ type: 'SELECT_ENTITY', entityId: hitObj.userData.entityId })
-            d({ type: 'SELECT_SUB_ITEM', subItem: { field: hitObj.userData.fieldKey, index: hitObj.userData.itemIndex } })
+            d({ type: 'SELECT_SUB_ITEM', subItem: hitObj.userData.subItemPath })
           } else {
             d({ type: 'SELECT_ENTITY', entityId: hitObj.userData.entityId })
           }
@@ -367,64 +366,11 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
 
         mesh.userData.layerId = layer.id
 
-        // Sub-item meshes for array fields with itemPositionField
-        for (const [fieldKey, fieldDef] of Object.entries(layerType.entitySchema)) {
-          if (fieldDef.type !== 'array') continue
-          const arrDef = fieldDef as ArrayField
-          if (!arrDef.itemPositionField) continue
-
-          const items = (entity[fieldKey] as Record<string, unknown>[]) || []
-          for (let i = 0; i < items.length; i++) {
-            const subKey = `${entity.id}:${fieldKey}:${i}`
-            existingIds.add(subKey)
-            let subMesh = entityMeshMap.get(subKey)
-
-            // Recreate if item data changed
-            if (subMesh) {
-              const itemHash = JSON.stringify(items[i])
-              if (subMesh.userData.itemHash !== itemHash) {
-                scene.remove(subMesh)
-                entityMeshMap.delete(subKey)
-                subMesh = undefined
-              }
-            }
-
-            if (!subMesh) {
-              subMesh = createSubItemMesh(fieldKey, i, items[i])
-              subMesh.userData.entityId = entity.id
-              subMesh.userData.layerId = layer.id
-              subMesh.userData.isSubItem = true
-              subMesh.userData.fieldKey = fieldKey
-              subMesh.userData.itemIndex = i
-              subMesh.userData.positionField = arrDef.itemPositionField
-              subMesh.userData.itemHash = JSON.stringify(items[i])
-              scene.add(subMesh)
-              entityMeshMap.set(subKey, subMesh)
-            }
-
-            // Position from item's position field
-            const itemPos = (items[i][arrDef.itemPositionField] as Vec3) || [0, 0, 0]
-            subMesh.position.set(itemPos[0], itemPos[1], itemPos[2])
-
-            // Visibility
-            const subPath = `${entity.id}:${fieldKey}:${i}`
-            const isSubHidden = s.ui.hiddenSubItems.includes(subPath)
-            if (!isVisible || isSubHidden) {
-              subMesh.visible = false
-            } else {
-              subMesh.visible = true
-              setMeshOpacity(subMesh, isActive ? 1.0 : 0.4)
-            }
-
-            // Sub-item selection highlight
-            const isSubSelected = s.ui.selectedEntityId === entity.id &&
-              s.ui.selectedSubItem?.field === fieldKey &&
-              s.ui.selectedSubItem?.index === i
-            updateSelectionHighlight(subMesh, isSubSelected)
-
-            subMesh.userData.layerId = layer.id
-          }
-        }
+        // Sub-item meshes — recurse into nested arrays
+        syncSubItems(
+          entity, entity as Record<string, unknown>, layerType.entitySchema,
+          [], entity.id, layer.id, isVisible, isActive, s, scene, existingIds
+        )
       }
     }
 
@@ -439,8 +385,8 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
     // Attach transform controls to selected entity or sub-item
     if (s.ui.selectedEntityId && transformControls) {
       let targetMesh: THREE.Object3D | undefined
-      if (s.ui.selectedSubItem) {
-        const subKey = `${s.ui.selectedEntityId}:${s.ui.selectedSubItem.field}:${s.ui.selectedSubItem.index}`
+      if (s.ui.selectedSubItem && s.ui.selectedSubItem.length > 0) {
+        const subKey = s.ui.selectedEntityId + ':' + s.ui.selectedSubItem.map((p) => `${p.field}:${p.index}`).join(':')
         targetMesh = entityMeshMap.get(subKey)
       } else {
         targetMesh = entityMeshMap.get(s.ui.selectedEntityId)
@@ -559,6 +505,89 @@ function setMeshOpacity(obj: THREE.Object3D, opacity: number) {
       }
     }
   })
+}
+
+function pathToKey(entityId: string, path: Array<{ field: string; index: number }>): string {
+  return entityId + ':' + path.map((p) => `${p.field}:${p.index}`).join(':')
+}
+
+function pathsEqual(
+  a: Array<{ field: string; index: number }> | null | undefined,
+  b: Array<{ field: string; index: number }>
+): boolean {
+  if (!a || a.length !== b.length) return false
+  return a.every((seg, i) => seg.field === b[i].field && seg.index === b[i].index)
+}
+
+function syncSubItems(
+  entity: { id: string; [key: string]: unknown },
+  data: Record<string, unknown>,
+  fields: Record<string, import('../state/types').SchemaField>,
+  parentPath: Array<{ field: string; index: number }>,
+  entityId: string,
+  layerId: string,
+  isVisible: boolean,
+  isActive: boolean,
+  s: import('../state/types').EditorState,
+  sceneObj: THREE.Scene,
+  existingIds: Set<string>
+) {
+  for (const [fieldKey, fieldDef] of Object.entries(fields)) {
+    if (fieldDef.type !== 'array') continue
+    const arrDef = fieldDef as ArrayField
+    const items = (data[fieldKey] as Record<string, unknown>[]) || []
+
+    for (let i = 0; i < items.length; i++) {
+      const itemPath = [...parentPath, { field: fieldKey, index: i }]
+      const compoundKey = pathToKey(entityId, itemPath)
+
+      if (arrDef.itemPositionField) {
+        existingIds.add(compoundKey)
+        let subMesh = entityMeshMap.get(compoundKey)
+
+        if (subMesh) {
+          const itemHash = JSON.stringify(items[i])
+          if (subMesh.userData.itemHash !== itemHash) {
+            sceneObj.remove(subMesh)
+            entityMeshMap.delete(compoundKey)
+            subMesh = undefined
+          }
+        }
+
+        if (!subMesh) {
+          subMesh = createSubItemMesh(fieldKey, i, items[i], arrDef.itemMeshType)
+          subMesh.userData.entityId = entityId
+          subMesh.userData.layerId = layerId
+          subMesh.userData.isSubItem = true
+          subMesh.userData.subItemPath = itemPath
+          subMesh.userData.positionField = arrDef.itemPositionField
+          subMesh.userData.itemHash = JSON.stringify(items[i])
+          sceneObj.add(subMesh)
+          entityMeshMap.set(compoundKey, subMesh)
+        }
+
+        const itemPos = (items[i][arrDef.itemPositionField] as Vec3) || [0, 0, 0]
+        subMesh.position.set(itemPos[0], itemPos[1], itemPos[2])
+
+        const visPath = compoundKey
+        const isSubHidden = s.ui.hiddenSubItems.includes(visPath)
+        if (!isVisible || isSubHidden) {
+          subMesh.visible = false
+        } else {
+          subMesh.visible = true
+          setMeshOpacity(subMesh, isActive ? 1.0 : 0.4)
+        }
+
+        const isSubSelected = s.ui.selectedEntityId === entityId && pathsEqual(s.ui.selectedSubItem, itemPath)
+        updateSelectionHighlight(subMesh, isSubSelected)
+
+        subMesh.userData.layerId = layerId
+      }
+
+      // Recurse into nested arrays
+      syncSubItems(entity, items[i], arrDef.itemFields, itemPath, entityId, layerId, isVisible, isActive, s, sceneObj, existingIds)
+    }
+  }
 }
 
 function updateSelectionHighlight(obj: THREE.Object3D, selected: boolean) {

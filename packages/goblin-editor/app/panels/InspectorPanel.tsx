@@ -1,4 +1,4 @@
-import { EditorState, Vec3, SchemaField, ArrayField } from '../state/types'
+import { EditorState, Vec3, SchemaField, ArrayField, SubItemPath } from '../state/types'
 import { EditorAction } from '../state/actions'
 import { generateId } from '../lib/idGen'
 import { getFieldDefault, buildArrayItemDefault } from '../lib/schemaDefaults'
@@ -61,6 +61,10 @@ export default function InspectorPanel({ state, dispatch }: InspectorProps) {
     dispatch({ type: 'SELECT_ENTITY', entityId: newId })
   }
 
+  const onSelectSubItem = (path: SubItemPath) => {
+    dispatch({ type: 'SELECT_SUB_ITEM', subItem: path })
+  }
+
   return (
     <div className="panel-section">
       <div className="panel-header">INSPECTOR</div>
@@ -84,8 +88,9 @@ export default function InspectorPanel({ state, dispatch }: InspectorProps) {
             value={entity[fieldKey]}
             onChange={(val) => updateField(fieldKey, val)}
             assetLibrary={present.project.assetLibrary}
-            selectedSubItem={ui.selectedSubItem}
-            entityId={entityId}
+            selectedPath={ui.selectedSubItem}
+            pathPrefix={[]}
+            onSelectSubItem={onSelectSubItem}
           />
         ))}
 
@@ -110,11 +115,12 @@ interface FieldEditorProps {
   value: unknown
   onChange: (value: unknown) => void
   assetLibrary: Record<string, Record<string, { label: string }>>
-  selectedSubItem?: { field: string; index: number } | null
-  entityId?: string
+  selectedPath?: SubItemPath | null
+  pathPrefix?: SubItemPath
+  onSelectSubItem?: (path: SubItemPath) => void
 }
 
-function FieldEditor({ fieldKey, fieldDef, value, onChange, assetLibrary, selectedSubItem, entityId }: FieldEditorProps) {
+function FieldEditor({ fieldKey, fieldDef, value, onChange, assetLibrary, selectedPath, pathPrefix, onSelectSubItem }: FieldEditorProps) {
   switch (fieldDef.type) {
     case 'vec3':
       return <Vec3Editor label={fieldDef.label} value={value as Vec3} onChange={onChange} />
@@ -225,16 +231,16 @@ function FieldEditor({ fieldKey, fieldDef, value, onChange, assetLibrary, select
     }
     case 'array': {
       const arrValue = (value as Record<string, unknown>[]) || []
-      const updateArray = (newArr: Record<string, unknown>[]) => onChange(newArr)
       return (
         <ArrayFieldEditor
           fieldKey={fieldKey}
           fieldDef={fieldDef}
           items={arrValue}
-          onChange={updateArray}
+          onChange={(newArr) => onChange(newArr)}
           assetLibrary={assetLibrary}
-          selectedSubItem={selectedSubItem}
-          entityId={entityId}
+          selectedPath={selectedPath}
+          pathPrefix={pathPrefix || []}
+          onSelectSubItem={onSelectSubItem}
         />
       )
     }
@@ -249,11 +255,12 @@ interface ArrayFieldEditorProps {
   items: Record<string, unknown>[]
   onChange: (items: Record<string, unknown>[]) => void
   assetLibrary: Record<string, Record<string, { label: string }>>
-  selectedSubItem?: { field: string; index: number } | null
-  entityId?: string
+  selectedPath?: SubItemPath | null
+  pathPrefix: SubItemPath
+  onSelectSubItem?: (path: SubItemPath) => void
 }
 
-function ArrayFieldEditor({ fieldKey, fieldDef, items, onChange, assetLibrary, selectedSubItem, entityId }: ArrayFieldEditorProps) {
+function ArrayFieldEditor({ fieldKey, fieldDef, items, onChange, assetLibrary, selectedPath, pathPrefix, onSelectSubItem }: ArrayFieldEditorProps) {
   const addItem = () => {
     const newItem = buildArrayItemDefault(fieldDef)
     onChange([...items, newItem])
@@ -277,26 +284,40 @@ function ArrayFieldEditor({ fieldKey, fieldDef, items, onChange, assetLibrary, s
     onChange(newItems)
   }
 
+  const isPositionable = !!fieldDef.itemPositionField
+
   return (
     <div className="inspector-field">
       <div className="inspector-field-label">{fieldDef.label} ({items.length})</div>
       <div className="inspector-nested">
-        {items.map((item, index) => (
-          <ArrayItemEditor
-            key={index}
-            index={index}
-            item={item}
-            fieldDef={fieldDef}
-            onChange={(newItem) => updateItem(index, newItem)}
-            onRemove={() => removeItem(index)}
-            onMoveUp={() => moveItem(index, -1)}
-            onMoveDown={() => moveItem(index, 1)}
-            isFirst={index === 0}
-            isLast={index === items.length - 1}
-            assetLibrary={assetLibrary}
-            isSelected={selectedSubItem?.field === fieldKey && selectedSubItem?.index === index}
-          />
-        ))}
+        {items.map((item, index) => {
+          const itemPath = [...pathPrefix, { field: fieldKey, index }]
+          const isOnPath = selectedPath &&
+            selectedPath.length > 0 &&
+            selectedPath[0].field === fieldKey &&
+            selectedPath[0].index === index
+          const childPath = isOnPath ? selectedPath!.slice(1) : null
+
+          return (
+            <ArrayItemEditor
+              key={index}
+              index={index}
+              item={item}
+              fieldDef={fieldDef}
+              onChange={(newItem) => updateItem(index, newItem)}
+              onRemove={() => removeItem(index)}
+              onMoveUp={() => moveItem(index, -1)}
+              onMoveDown={() => moveItem(index, 1)}
+              isFirst={index === 0}
+              isLast={index === items.length - 1}
+              assetLibrary={assetLibrary}
+              isOnPath={!!isOnPath}
+              childSelectedPath={childPath}
+              itemPath={itemPath}
+              onSelectSubItem={isPositionable ? onSelectSubItem : undefined}
+            />
+          )
+        })}
         <button className="array-add-btn" onClick={addItem}>
           + Add Item
         </button>
@@ -316,22 +337,41 @@ interface ArrayItemEditorProps {
   isFirst: boolean
   isLast: boolean
   assetLibrary: Record<string, Record<string, { label: string }>>
-  isSelected: boolean
+  isOnPath: boolean
+  childSelectedPath: SubItemPath | null
+  itemPath: SubItemPath
+  onSelectSubItem?: (path: SubItemPath) => void
 }
 
-function ArrayItemEditor({ index, item, fieldDef, onChange, onRemove, onMoveUp, onMoveDown, isFirst, isLast, assetLibrary, isSelected }: ArrayItemEditorProps) {
-  const [collapsed, setCollapsed] = useState(!isSelected)
+function ArrayItemEditor({ index, item, fieldDef, onChange, onRemove, onMoveUp, onMoveDown, isFirst, isLast, assetLibrary, isOnPath, childSelectedPath, itemPath, onSelectSubItem }: ArrayItemEditorProps) {
+  const [collapsed, setCollapsed] = useState(!isOnPath)
+  const isSelectable = !!onSelectSubItem
+  const isExactlySelected = isOnPath && (!childSelectedPath || childSelectedPath.length === 0)
 
   useEffect(() => {
-    if (isSelected) setCollapsed(false)
-  }, [isSelected])
+    if (isOnPath) setCollapsed(false)
+  }, [isOnPath])
 
   const summary = Object.values(item).find((v) => typeof v === 'string' && v) as string || `Item ${index}`
 
+  const handleHeaderClick = () => {
+    if (isSelectable) {
+      onSelectSubItem!(itemPath)
+      setCollapsed(false)
+    } else {
+      setCollapsed(!collapsed)
+    }
+  }
+
+  const handleChevronClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setCollapsed(!collapsed)
+  }
+
   return (
-    <div className={`array-item ${isSelected ? 'selected' : ''}`}>
-      <div className="array-item-header" onClick={() => setCollapsed(!collapsed)}>
-        <span className="array-item-chevron">{collapsed ? '>' : 'v'}</span>
+    <div className={`array-item ${isExactlySelected ? 'selected' : isOnPath ? 'on-path' : ''}`}>
+      <div className={`array-item-header ${isSelectable ? 'selectable' : ''}`} onClick={handleHeaderClick}>
+        <span className="array-item-chevron" onClick={handleChevronClick}>{collapsed ? '>' : 'v'}</span>
         <span className="array-item-title">#{index} {summary}</span>
         <div className="array-item-actions">
           {!isFirst && <button className="array-item-btn" onClick={(e) => { e.stopPropagation(); onMoveUp() }} title="Move up">^</button>}
@@ -349,6 +389,9 @@ function ArrayItemEditor({ index, item, fieldDef, onChange, onRemove, onMoveUp, 
               value={item[subKey]}
               onChange={(subVal) => onChange({ ...item, [subKey]: subVal })}
               assetLibrary={assetLibrary}
+              selectedPath={childSelectedPath}
+              pathPrefix={itemPath}
+              onSelectSubItem={onSelectSubItem}
             />
           ))}
         </div>

@@ -59,8 +59,11 @@ export interface ArrayField extends SchemaFieldBase {
   type: 'array'
   itemFields: Record<string, SchemaField>
   itemPositionField?: string
+  itemMeshType?: string
   default?: Record<string, unknown>[]
 }
+
+export type SubItemPath = Array<{ field: string; index: number }>
 
 export type SchemaField =
   | Vec3Field
@@ -186,7 +189,7 @@ export interface UIState {
   currentSceneId: string
   activeLayerId: string
   selectedEntityId: string | null
-  selectedSubItem: { field: string; index: number } | null
+  selectedSubItem: SubItemPath | null
   transformMode: 'translate' | 'rotate' | 'scale'
   placementTool: PlacementTool
   showStageEditor: boolean
