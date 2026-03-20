@@ -13,7 +13,7 @@ import type { LayerData } from './state/types'
 import './App.css'
 
 async function loadLayersFromDisk(
-  project: typeof initialEditorState.present.project
+  project: typeof initialEditorState.present.project,
 ): Promise<Record<string, Record<string, LayerData>>> {
   const sceneLayers: Record<string, Record<string, LayerData>> = {}
 
@@ -45,7 +45,7 @@ async function loadLayersFromDisk(
 
 async function saveLayersToDisk(
   project: typeof initialEditorState.present.project,
-  sceneLayers: Record<string, Record<string, LayerData>>
+  sceneLayers: Record<string, Record<string, LayerData>>,
 ): Promise<boolean> {
   const layers: Array<{ file: string; data: unknown }> = []
 
@@ -83,7 +83,9 @@ export default function App() {
   const savingRef = useRef(false)
   const [rightWidth, setRightWidth] = useState(() => {
     const saved = localStorage.getItem(RIGHT_PANEL_KEY)
-    return saved ? Math.max(MIN_RIGHT_WIDTH, Math.min(MAX_RIGHT_WIDTH, parseInt(saved, 10))) : DEFAULT_RIGHT_WIDTH
+    return saved
+      ? Math.max(MIN_RIGHT_WIDTH, Math.min(MAX_RIGHT_WIDTH, parseInt(saved, 10)))
+      : DEFAULT_RIGHT_WIDTH
   })
   const draggingRef = useRef(false)
 
@@ -92,7 +94,7 @@ export default function App() {
     loadLayersFromDisk(state.present.project).then((sceneLayers) => {
       dispatch({ type: 'LOAD_LAYERS', sceneLayers })
     })
-  }, [])
+  }, []) // oxlint-disable-line react-hooks/exhaustive-deps -- load once on mount
 
   // Save handler
   const handleSave = useCallback(async () => {
@@ -160,11 +162,13 @@ export default function App() {
         }
       } else if (e.key === 'f' || e.key === 'F') {
         if (state.ui.selectedEntityId) {
-          window.dispatchEvent(new CustomEvent('focus-entity', { detail: state.ui.selectedEntityId }))
+          window.dispatchEvent(
+            new CustomEvent('focus-entity', { detail: state.ui.selectedEntityId }),
+          )
         }
       }
     },
-    [state.ui, handleSave]
+    [state.ui, handleSave],
   )
 
   useEffect(() => {
@@ -183,35 +187,38 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', handler)
   }, [state.ui.dirty])
 
-  const onResizeStart = useCallback((e: React.MouseEvent) => {
-    e.preventDefault()
-    draggingRef.current = true
-    const startX = e.clientX
-    const startWidth = rightWidth
+  const onResizeStart = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      draggingRef.current = true
+      const startX = e.clientX
+      const startWidth = rightWidth
 
-    const onMouseMove = (ev: MouseEvent) => {
-      const delta = startX - ev.clientX
-      const newWidth = Math.max(MIN_RIGHT_WIDTH, Math.min(MAX_RIGHT_WIDTH, startWidth + delta))
-      setRightWidth(newWidth)
-    }
+      const onMouseMove = (ev: MouseEvent) => {
+        const delta = startX - ev.clientX
+        const newWidth = Math.max(MIN_RIGHT_WIDTH, Math.min(MAX_RIGHT_WIDTH, startWidth + delta))
+        setRightWidth(newWidth)
+      }
 
-    const onMouseUp = () => {
-      draggingRef.current = false
-      document.removeEventListener('mousemove', onMouseMove)
-      document.removeEventListener('mouseup', onMouseUp)
-      document.body.style.cursor = ''
-      document.body.style.userSelect = ''
-      setRightWidth((w) => {
-        localStorage.setItem(RIGHT_PANEL_KEY, String(w))
-        return w
-      })
-    }
+      const onMouseUp = () => {
+        draggingRef.current = false
+        document.removeEventListener('mousemove', onMouseMove)
+        document.removeEventListener('mouseup', onMouseUp)
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+        setRightWidth((w) => {
+          localStorage.setItem(RIGHT_PANEL_KEY, String(w))
+          return w
+        })
+      }
 
-    document.body.style.cursor = 'col-resize'
-    document.body.style.userSelect = 'none'
-    document.addEventListener('mousemove', onMouseMove)
-    document.addEventListener('mouseup', onMouseUp)
-  }, [rightWidth])
+      document.body.style.cursor = 'col-resize'
+      document.body.style.userSelect = 'none'
+      document.addEventListener('mousemove', onMouseMove)
+      document.addEventListener('mouseup', onMouseUp)
+    },
+    [rightWidth],
+  )
 
   // Entity count for status bar
   const sceneId = state.ui.currentSceneId
@@ -251,15 +258,15 @@ export default function App() {
         <span>Mode: {state.ui.transformMode}</span>
         {state.ui.placementTool && (
           <span>
-            Placing: {state.ui.placementTool.type === 'decoration'
+            Placing:{' '}
+            {state.ui.placementTool.type === 'decoration'
               ? state.ui.placementTool.asset
               : state.ui.placementTool.type === 'collider'
-              ? state.ui.placementTool.shape
-              : 'New marker'}
+                ? state.ui.placementTool.shape
+                : 'New marker'}
           </span>
         )}
       </div>
-
     </div>
   )
 }

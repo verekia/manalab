@@ -63,7 +63,8 @@ export default function AssetPalette({ state, dispatch }: AssetPaletteProps) {
   if (layerType.renderMode === 'wireframe') {
     // Collider palette — show shapes
     const shapeSchema = layerType.entitySchema['shape']
-    const shapes = shapeSchema && 'options' in shapeSchema ? shapeSchema.options : ['cylinder', 'box']
+    const shapes =
+      shapeSchema && 'options' in shapeSchema ? shapeSchema.options : ['cylinder', 'box']
 
     return (
       <div className="panel-section">

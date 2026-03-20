@@ -32,16 +32,13 @@ function createPlaceholderMesh(assetKey: string, label: string): THREE.Group {
     // Tree-like: trunk + cone
     const trunk = new THREE.Mesh(
       new THREE.CylinderGeometry(0.15, 0.2, 1, 8),
-      new THREE.MeshStandardMaterial({ color: '#8B4513' })
+      new THREE.MeshStandardMaterial({ color: '#8B4513' }),
     )
     trunk.position.y = 0.5
     group.add(trunk)
 
     geometry = new THREE.ConeGeometry(0.8, 1.5, 8)
-    const foliage = new THREE.Mesh(
-      geometry,
-      new THREE.MeshStandardMaterial({ color })
-    )
+    const foliage = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color }))
     foliage.position.y = 1.75
     group.add(foliage)
   } else if (assetKey.includes('rock')) {
@@ -49,27 +46,21 @@ function createPlaceholderMesh(assetKey: string, label: string): THREE.Group {
     geometry = new THREE.DodecahedronGeometry(0.5, 0)
     const rock = new THREE.Mesh(
       geometry,
-      new THREE.MeshStandardMaterial({ color, flatShading: true })
+      new THREE.MeshStandardMaterial({ color, flatShading: true }),
     )
     rock.position.y = 0.4
     rock.scale.set(1, 0.7, 1)
     group.add(rock)
   } else if (assetKey.includes('bush')) {
     geometry = new THREE.SphereGeometry(0.5, 8, 6)
-    const bush = new THREE.Mesh(
-      geometry,
-      new THREE.MeshStandardMaterial({ color })
-    )
+    const bush = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color }))
     bush.position.y = 0.4
     bush.scale.set(1, 0.7, 1.2)
     group.add(bush)
   } else {
     // Generic box
     geometry = new THREE.BoxGeometry(1, 1, 1)
-    const box = new THREE.Mesh(
-      geometry,
-      new THREE.MeshStandardMaterial({ color })
-    )
+    const box = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color }))
     box.position.y = 0.5
     group.add(box)
   }
@@ -111,10 +102,7 @@ function createColliderMesh(entity: Entity): THREE.Group {
   }
 
   const edges = new THREE.EdgesGeometry(geometry)
-  const line = new THREE.LineSegments(
-    edges,
-    new THREE.LineBasicMaterial({ color: '#00d4ff' })
-  )
+  const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: '#00d4ff' }))
   line.position.y = dims[1] / 2
   group.add(line)
 
@@ -136,7 +124,7 @@ function createMarkerMesh(entity: Entity): THREE.Group {
   // Orange sphere
   const sphere = new THREE.Mesh(
     new THREE.SphereGeometry(0.4, 16, 12),
-    new THREE.MeshStandardMaterial({ color: '#ff8c00' })
+    new THREE.MeshStandardMaterial({ color: '#ff8c00' }),
   )
   sphere.position.y = 2.2
   group.add(sphere)
@@ -144,7 +132,7 @@ function createMarkerMesh(entity: Entity): THREE.Group {
   // Pole
   const pole = new THREE.Mesh(
     new THREE.CylinderGeometry(0.06, 0.06, 2, 8),
-    new THREE.MeshStandardMaterial({ color: '#cc7000' })
+    new THREE.MeshStandardMaterial({ color: '#cc7000' }),
   )
   pole.position.y = 1
   group.add(pole)
@@ -182,7 +170,7 @@ function createEnemyMesh(index: number, item: Record<string, unknown>): THREE.Gr
   // Body — capsule
   const body = new THREE.Mesh(
     new THREE.CapsuleGeometry(0.3, 0.5, 8, 12),
-    new THREE.MeshStandardMaterial({ color: '#8b2e2e' })
+    new THREE.MeshStandardMaterial({ color: '#8b2e2e' }),
   )
   body.position.y = 0.85
   group.add(body)
@@ -190,7 +178,7 @@ function createEnemyMesh(index: number, item: Record<string, unknown>): THREE.Gr
   // Face — circle on front
   const face = new THREE.Mesh(
     new THREE.CircleGeometry(0.2, 16),
-    new THREE.MeshStandardMaterial({ color: '#d4a574' })
+    new THREE.MeshStandardMaterial({ color: '#d4a574' }),
   )
   face.position.set(0, 1.0, 0.31)
   group.add(face)
@@ -232,7 +220,12 @@ function createEnemyMesh(index: number, item: Record<string, unknown>): THREE.Gr
   return group
 }
 
-export function createSubItemMesh(fieldKey: string, index: number, item: Record<string, unknown>, meshType?: string): THREE.Group {
+export function createSubItemMesh(
+  fieldKey: string,
+  index: number,
+  item: Record<string, unknown>,
+  meshType?: string,
+): THREE.Group {
   if (meshType === 'enemy') {
     return createEnemyMesh(index, item)
   }
@@ -243,7 +236,7 @@ export function createSubItemMesh(fieldKey: string, index: number, item: Record<
   // Colored cube
   const cube = new THREE.Mesh(
     new THREE.BoxGeometry(0.5, 0.5, 0.5),
-    new THREE.MeshStandardMaterial({ color })
+    new THREE.MeshStandardMaterial({ color }),
   )
   cube.position.y = 0.25
   group.add(cube)
@@ -279,7 +272,7 @@ export function createSubItemMesh(fieldKey: string, index: number, item: Record<
 export function createEntityMesh(
   entity: Entity,
   layerType: LayerTypeDef,
-  assetLibrary: Record<string, Record<string, { label: string; glb?: string }>>
+  assetLibrary: Record<string, Record<string, { label: string; glb?: string }>>,
 ): THREE.Object3D {
   if (layerType.renderMode === 'wireframe') {
     return createColliderMesh(entity)
@@ -292,7 +285,8 @@ export function createEntityMesh(
   // gltf / decoration — use placeholder for now (glTF loading is async & optional)
   const assetKey = entity.asset as string
   const assetRefField = Object.values(layerType.entitySchema).find((f) => f.type === 'assetRef')
-  const categoryKey = assetRefField && 'category' in assetRefField ? assetRefField.category : 'decorations'
+  const categoryKey =
+    assetRefField && 'category' in assetRefField ? assetRefField.category : 'decorations'
   const category = assetLibrary[categoryKey] || {}
   const assetDef = category[assetKey]
   const label = assetDef?.label || assetKey || 'Unknown'

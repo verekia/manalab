@@ -17,7 +17,7 @@ export default function StageEditor({ state, dispatch }: StageEditorProps) {
 
   useEffect(() => {
     setStage(JSON.parse(JSON.stringify(sceneDef.stage)))
-  }, [sceneId])
+  }, [sceneId]) // oxlint-disable-line react-hooks/exhaustive-deps -- reset only on scene switch
 
   const apply = () => {
     dispatch({ type: 'UPDATE_STAGE', sceneId, stage })
@@ -59,7 +59,9 @@ export default function StageEditor({ state, dispatch }: StageEditorProps) {
     <div className="vec3-row">
       {[0, 1, 2].map((i) => (
         <div key={i} className="vec3-input-group">
-          <span className="vec3-label" style={{ color: colors[i] }}>{labels[i]}</span>
+          <span className="vec3-label" style={{ color: colors[i] }}>
+            {labels[i]}
+          </span>
           <input
             type="number"
             className="vec3-input"
@@ -128,7 +130,9 @@ export default function StageEditor({ state, dispatch }: StageEditorProps) {
           <div className="stage-group-title">BACKDROPS</div>
           {stage.backdrops.map((bd, i) => (
             <div key={bd.id} className="backdrop-card">
-              <div className="backdrop-name">{bd.name} ({bd.type})</div>
+              <div className="backdrop-name">
+                {bd.name} ({bd.type})
+              </div>
               {bd.color && (
                 <div className="stage-field">
                   <label>Color</label>
@@ -149,7 +153,9 @@ export default function StageEditor({ state, dispatch }: StageEditorProps) {
                     min={0}
                     max={1}
                     step={0.05}
-                    onChange={(e) => updateBackdrop(i, { opacity: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      updateBackdrop(i, { opacity: parseFloat(e.target.value) || 0 })
+                    }
                   />
                 </div>
               )}
@@ -185,8 +191,8 @@ export default function StageEditor({ state, dispatch }: StageEditorProps) {
                 type="checkbox"
                 checked={stage.grid.visible}
                 onChange={(e) => updateGrid('visible', e.target.checked)}
-              />
-              {' '}Visible
+              />{' '}
+              Visible
             </label>
           </div>
           <div className="stage-field">

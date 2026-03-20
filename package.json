@@ -1,10 +1,21 @@
 {
   "private": true,
-  "workspaces": ["manalab", "example"],
+  "workspaces": [
+    "manalab",
+    "example"
+  ],
   "scripts": {
     "dev:lib": "cd manalab && bun run dev",
     "dev:editor": "cd example && bun run manalab",
     "dev:example": "cd example && bun run dev",
-    "dev": "bun run --parallel dev:lib dev:editor dev:example"
+    "dev": "bun run --parallel dev:lib dev:editor dev:example",
+    "fmt": "oxfmt .",
+    "fmt:check": "oxfmt --check .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix ."
+  },
+  "devDependencies": {
+    "oxfmt": "^0.41.0",
+    "oxlint": "^1.56.0"
   }
 }

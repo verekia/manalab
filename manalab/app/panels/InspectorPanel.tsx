@@ -1,7 +1,7 @@
 import { EditorState, Vec3, SchemaField, ArrayField, SubItemPath } from '../state/types'
 import { EditorAction } from '../state/actions'
 import { generateId } from '../lib/idGen'
-import { getFieldDefault, buildArrayItemDefault } from '../lib/schemaDefaults'
+import { buildArrayItemDefault } from '../lib/schemaDefaults'
 import { useState, useEffect } from 'react'
 
 interface InspectorProps {
@@ -120,7 +120,16 @@ interface FieldEditorProps {
   onSelectSubItem?: (path: SubItemPath) => void
 }
 
-function FieldEditor({ fieldKey, fieldDef, value, onChange, assetLibrary, selectedPath, pathPrefix, onSelectSubItem }: FieldEditorProps) {
+function FieldEditor({
+  fieldKey,
+  fieldDef,
+  value,
+  onChange,
+  assetLibrary,
+  selectedPath,
+  pathPrefix,
+  onSelectSubItem,
+}: FieldEditorProps) {
   switch (fieldDef.type) {
     case 'vec3':
       return <Vec3Editor label={fieldDef.label} value={value as Vec3} onChange={onChange} />
@@ -134,7 +143,9 @@ function FieldEditor({ fieldKey, fieldDef, value, onChange, assetLibrary, select
             onChange={(e) => onChange(e.target.value)}
           >
             {fieldDef.options.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
             ))}
           </select>
         </div>
@@ -151,7 +162,9 @@ function FieldEditor({ fieldKey, fieldDef, value, onChange, assetLibrary, select
             onChange={(e) => onChange(e.target.value)}
           >
             {Object.entries(assets).map(([key, asset]) => (
-              <option key={key} value={key}>{asset.label}</option>
+              <option key={key} value={key}>
+                {asset.label}
+              </option>
             ))}
           </select>
         </div>
@@ -188,11 +201,7 @@ function FieldEditor({ fieldKey, fieldDef, value, onChange, assetLibrary, select
       return (
         <div className="inspector-field">
           <label className="inspector-checkbox">
-            <input
-              type="checkbox"
-              checked={!!value}
-              onChange={(e) => onChange(e.target.checked)}
-            />
+            <input type="checkbox" checked={!!value} onChange={(e) => onChange(e.target.checked)} />
             {fieldDef.label}
           </label>
         </div>
@@ -260,7 +269,16 @@ interface ArrayFieldEditorProps {
   onSelectSubItem?: (path: SubItemPath) => void
 }
 
-function ArrayFieldEditor({ fieldKey, fieldDef, items, onChange, assetLibrary, selectedPath, pathPrefix, onSelectSubItem }: ArrayFieldEditorProps) {
+function ArrayFieldEditor({
+  fieldKey,
+  fieldDef,
+  items,
+  onChange,
+  assetLibrary,
+  selectedPath,
+  pathPrefix,
+  onSelectSubItem,
+}: ArrayFieldEditorProps) {
   const addItem = () => {
     const newItem = buildArrayItemDefault(fieldDef)
     onChange([...items, newItem])
@@ -288,11 +306,14 @@ function ArrayFieldEditor({ fieldKey, fieldDef, items, onChange, assetLibrary, s
 
   return (
     <div className="inspector-field">
-      <div className="inspector-field-label">{fieldDef.label} ({items.length})</div>
+      <div className="inspector-field-label">
+        {fieldDef.label} ({items.length})
+      </div>
       <div className="inspector-nested">
         {items.map((item, index) => {
           const itemPath = [...pathPrefix, { field: fieldKey, index }]
-          const isOnPath = selectedPath &&
+          const isOnPath =
+            selectedPath &&
             selectedPath.length > 0 &&
             selectedPath[0].field === fieldKey &&
             selectedPath[0].index === index
@@ -343,7 +364,22 @@ interface ArrayItemEditorProps {
   onSelectSubItem?: (path: SubItemPath) => void
 }
 
-function ArrayItemEditor({ index, item, fieldDef, onChange, onRemove, onMoveUp, onMoveDown, isFirst, isLast, assetLibrary, isOnPath, childSelectedPath, itemPath, onSelectSubItem }: ArrayItemEditorProps) {
+function ArrayItemEditor({
+  index,
+  item,
+  fieldDef,
+  onChange,
+  onRemove,
+  onMoveUp,
+  onMoveDown,
+  isFirst,
+  isLast,
+  assetLibrary,
+  isOnPath,
+  childSelectedPath,
+  itemPath,
+  onSelectSubItem,
+}: ArrayItemEditorProps) {
   const [collapsed, setCollapsed] = useState(!isOnPath)
   const isSelectable = !!onSelectSubItem
   const isExactlySelected = isOnPath && (!childSelectedPath || childSelectedPath.length === 0)
@@ -352,7 +388,8 @@ function ArrayItemEditor({ index, item, fieldDef, onChange, onRemove, onMoveUp, 
     if (isOnPath) setCollapsed(false)
   }, [isOnPath])
 
-  const summary = Object.values(item).find((v) => typeof v === 'string' && v) as string || `Item ${index}`
+  const summary =
+    (Object.values(item).find((v) => typeof v === 'string' && v) as string) || `Item ${index}`
 
   const handleHeaderClick = () => {
     if (isSelectable) {
@@ -370,13 +407,51 @@ function ArrayItemEditor({ index, item, fieldDef, onChange, onRemove, onMoveUp, 
 
   return (
     <div className={`array-item ${isExactlySelected ? 'selected' : isOnPath ? 'on-path' : ''}`}>
-      <div className={`array-item-header ${isSelectable ? 'selectable' : ''}`} onClick={handleHeaderClick}>
-        <span className="array-item-chevron" onClick={handleChevronClick}>{collapsed ? '>' : 'v'}</span>
-        <span className="array-item-title">#{index} {summary}</span>
+      <div
+        className={`array-item-header ${isSelectable ? 'selectable' : ''}`}
+        onClick={handleHeaderClick}
+      >
+        <span className="array-item-chevron" onClick={handleChevronClick}>
+          {collapsed ? '>' : 'v'}
+        </span>
+        <span className="array-item-title">
+          #{index} {summary}
+        </span>
         <div className="array-item-actions">
-          {!isFirst && <button className="array-item-btn" onClick={(e) => { e.stopPropagation(); onMoveUp() }} title="Move up">^</button>}
-          {!isLast && <button className="array-item-btn" onClick={(e) => { e.stopPropagation(); onMoveDown() }} title="Move down">v</button>}
-          <button className="array-item-btn danger" onClick={(e) => { e.stopPropagation(); onRemove() }} title="Remove">x</button>
+          {!isFirst && (
+            <button
+              className="array-item-btn"
+              onClick={(e) => {
+                e.stopPropagation()
+                onMoveUp()
+              }}
+              title="Move up"
+            >
+              ^
+            </button>
+          )}
+          {!isLast && (
+            <button
+              className="array-item-btn"
+              onClick={(e) => {
+                e.stopPropagation()
+                onMoveDown()
+              }}
+              title="Move down"
+            >
+              v
+            </button>
+          )}
+          <button
+            className="array-item-btn danger"
+            onClick={(e) => {
+              e.stopPropagation()
+              onRemove()
+            }}
+            title="Remove"
+          >
+            x
+          </button>
         </div>
       </div>
       {!collapsed && (
@@ -425,7 +500,9 @@ function Vec3Editor({
       <div className="vec3-row">
         {[0, 1, 2].map((i) => (
           <div key={i} className="vec3-input-group">
-            <span className="vec3-label" style={{ color: colors[i] }}>{labels[i]}</span>
+            <span className="vec3-label" style={{ color: colors[i] }}>
+              {labels[i]}
+            </span>
             <input
               type="number"
               className="vec3-input"

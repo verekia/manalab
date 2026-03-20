@@ -17,9 +17,7 @@ async function main() {
     fs.existsSync(path.resolve(projectRoot, 'manalab.config.js'))
 
   if (!hasConfig) {
-    console.error(
-      '\x1b[31mMana Lab: No manalab.config.ts or manalab.config.js found.\x1b[0m'
-    )
+    console.error('\x1b[31mMana Lab: No manalab.config.ts or manalab.config.js found.\x1b[0m')
     console.error('Create a manalab.config.ts in your project root to configure the editor.')
     process.exit(1)
   }

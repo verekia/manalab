@@ -68,11 +68,7 @@ export default function LayerPanel({ state, dispatch }: LayerPanelProps) {
       </div>
       <div className="layer-add-btns">
         {Object.entries(layerTypes).map(([key, def]) => (
-          <button
-            key={key}
-            className="layer-add-btn"
-            onClick={() => addLayer(key)}
-          >
+          <button key={key} className="layer-add-btn" onClick={() => addLayer(key)}>
             + {def.label}
           </button>
         ))}

@@ -211,7 +211,7 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
           } else {
             // marker
             const layerRef = s.present.project.scenes[s.ui.currentSceneId]?.layers.find(
-              (l) => l.id === s.ui.activeLayerId
+              (l) => l.id === s.ui.activeLayerId,
             )
             const layerTypeDef = layerRef ? s.present.project.layerTypes[layerRef.type] : null
             if (!layerTypeDef) return
@@ -292,7 +292,7 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
         sceneDef.stage.grid.size,
         sceneDef.stage.grid.divisions,
         '#333336',
-        '#222225'
+        '#222225',
       )
       gridHelper.material.opacity = 0.3
       ;(gridHelper.material as THREE.Material).transparent = true
@@ -369,8 +369,17 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
 
         // Sub-item meshes — recurse into nested arrays
         syncSubItems(
-          entity, entity as Record<string, unknown>, layerType.entitySchema,
-          [], entity.id, layer.id, isVisible, isActive, s, scene, existingIds
+          entity,
+          entity as Record<string, unknown>,
+          layerType.entitySchema,
+          [],
+          entity.id,
+          layer.id,
+          isVisible,
+          isActive,
+          s,
+          scene,
+          existingIds,
         )
       }
     }
@@ -388,7 +397,10 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
     if (s.ui.selectedEntityId && transformControls) {
       let targetMesh: THREE.Object3D | undefined
       if (s.ui.selectedSubItem && s.ui.selectedSubItem.length > 0) {
-        const subKey = s.ui.selectedEntityId + ':' + s.ui.selectedSubItem.map((p) => `${p.field}:${p.index}`).join(':')
+        const subKey =
+          s.ui.selectedEntityId +
+          ':' +
+          s.ui.selectedSubItem.map((p) => `${p.field}:${p.index}`).join(':')
         targetMesh = entityMeshMap.get(subKey)
       } else {
         targetMesh = entityMeshMap.get(s.ui.selectedEntityId)
@@ -401,8 +413,11 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
           transformControls.setMode('translate')
         } else {
           transformControls.setMode(
-            s.ui.transformMode === 'translate' ? 'translate' :
-            s.ui.transformMode === 'rotate' ? 'rotate' : 'scale'
+            s.ui.transformMode === 'translate'
+              ? 'translate'
+              : s.ui.transformMode === 'rotate'
+                ? 'rotate'
+                : 'scale',
           )
         }
         transformControls.getHelper().visible = true
@@ -450,12 +465,7 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
 
   const cursorStyle = state.ui.placementTool ? 'crosshair' : 'default'
 
-  return (
-    <div
-      ref={containerRef}
-      style={{ width: '100%', height: '100%', cursor: cursorStyle }}
-    />
-  )
+  return <div ref={containerRef} style={{ width: '100%', height: '100%', cursor: cursorStyle }} />
 }
 
 function updateColliderGeometry(mesh: THREE.Object3D, entity: Entity) {
@@ -479,10 +489,7 @@ function updateColliderGeometry(mesh: THREE.Object3D, entity: Entity) {
   }
 
   const edges = new THREE.EdgesGeometry(geometry)
-  const line = new THREE.LineSegments(
-    edges,
-    new THREE.LineBasicMaterial({ color: '#00d4ff' })
-  )
+  const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: '#00d4ff' }))
   line.position.y = dims[1] / 2
 
   const fillMat = new THREE.MeshBasicMaterial({
@@ -515,7 +522,7 @@ function pathToKey(entityId: string, path: Array<{ field: string; index: number 
 
 function pathsEqual(
   a: Array<{ field: string; index: number }> | null | undefined,
-  b: Array<{ field: string; index: number }>
+  b: Array<{ field: string; index: number }>,
 ): boolean {
   if (!a || a.length !== b.length) return false
   return a.every((seg, i) => seg.field === b[i].field && seg.index === b[i].index)
@@ -532,7 +539,7 @@ function syncSubItems(
   isActive: boolean,
   s: import('../state/types').EditorState,
   sceneObj: THREE.Scene,
-  existingIds: Set<string>
+  existingIds: Set<string>,
 ) {
   for (const [fieldKey, fieldDef] of Object.entries(fields)) {
     if (fieldDef.type !== 'array') continue
@@ -581,14 +588,27 @@ function syncSubItems(
           setMeshOpacity(subMesh, isActive ? 1.0 : 0.4)
         }
 
-        const isSubSelected = s.ui.selectedEntityId === entityId && pathsEqual(s.ui.selectedSubItem, itemPath)
+        const isSubSelected =
+          s.ui.selectedEntityId === entityId && pathsEqual(s.ui.selectedSubItem, itemPath)
         updateSelectionHighlight(subMesh, isSubSelected)
 
         subMesh.userData.layerId = layerId
       }
 
       // Recurse into nested arrays
-      syncSubItems(entity, items[i], arrDef.itemFields, itemPath, entityId, layerId, isVisible, isActive, s, sceneObj, existingIds)
+      syncSubItems(
+        entity,
+        items[i],
+        arrDef.itemFields,
+        itemPath,
+        entityId,
+        layerId,
+        isVisible,
+        isActive,
+        s,
+        sceneObj,
+        existingIds,
+      )
     }
   }
 }
@@ -628,7 +648,7 @@ function updateSelectionHighlight(obj: THREE.Object3D, selected: boolean) {
         const edges = new THREE.EdgesGeometry(child.geometry)
         const line = new THREE.LineSegments(
           edges,
-          new THREE.LineBasicMaterial({ color: '#ffffff', linewidth: 2 })
+          new THREE.LineBasicMaterial({ color: '#ffffff', linewidth: 2 }),
         )
         line.userData.isSelectionHighlight = true
         line.renderOrder = 999

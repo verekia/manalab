@@ -1,15 +1,15 @@
-import { EditorState } from "../state/types";
-import { EditorAction } from "../state/actions";
+import { EditorState } from '../state/types'
+import { EditorAction } from '../state/actions'
 
 interface TopBarProps {
-  state: EditorState;
-  dispatch: React.Dispatch<EditorAction>;
-  onSave: () => void;
+  state: EditorState
+  dispatch: React.Dispatch<EditorAction>
+  onSave: () => void
 }
 
 export default function TopBar({ state, dispatch, onSave }: TopBarProps) {
-  const { ui, past, future, present } = state;
-  const scenes = Object.entries(present.project.scenes);
+  const { ui, past, future, present } = state
+  const scenes = Object.entries(present.project.scenes)
 
   return (
     <div className="topbar">
@@ -20,9 +20,7 @@ export default function TopBar({ state, dispatch, onSave }: TopBarProps) {
         <select
           className="topbar-select"
           value={ui.currentSceneId}
-          onChange={(e) =>
-            dispatch({ type: "SWITCH_SCENE", sceneId: e.target.value })
-          }
+          onChange={(e) => dispatch({ type: 'SWITCH_SCENE', sceneId: e.target.value })}
         >
           {scenes.map(([id, scene]) => (
             <option key={id} value={id}>
@@ -36,28 +34,22 @@ export default function TopBar({ state, dispatch, onSave }: TopBarProps) {
 
       <div className="topbar-group">
         <button
-          className={`topbar-btn ${ui.transformMode === "translate" ? "active" : ""}`}
-          onClick={() =>
-            dispatch({ type: "SET_TRANSFORM_MODE", mode: "translate" })
-          }
+          className={`topbar-btn ${ui.transformMode === 'translate' ? 'active' : ''}`}
+          onClick={() => dispatch({ type: 'SET_TRANSFORM_MODE', mode: 'translate' })}
           title="Translate (W)"
         >
           W Move
         </button>
         <button
-          className={`topbar-btn ${ui.transformMode === "rotate" ? "active" : ""}`}
-          onClick={() =>
-            dispatch({ type: "SET_TRANSFORM_MODE", mode: "rotate" })
-          }
+          className={`topbar-btn ${ui.transformMode === 'rotate' ? 'active' : ''}`}
+          onClick={() => dispatch({ type: 'SET_TRANSFORM_MODE', mode: 'rotate' })}
           title="Rotate (E)"
         >
           E Rot
         </button>
         <button
-          className={`topbar-btn ${ui.transformMode === "scale" ? "active" : ""}`}
-          onClick={() =>
-            dispatch({ type: "SET_TRANSFORM_MODE", mode: "scale" })
-          }
+          className={`topbar-btn ${ui.transformMode === 'scale' ? 'active' : ''}`}
+          onClick={() => dispatch({ type: 'SET_TRANSFORM_MODE', mode: 'scale' })}
           title="Scale (R)"
         >
           R Scl
@@ -70,7 +62,7 @@ export default function TopBar({ state, dispatch, onSave }: TopBarProps) {
         <button
           className="topbar-btn"
           disabled={past.length === 0}
-          onClick={() => dispatch({ type: "UNDO" })}
+          onClick={() => dispatch({ type: 'UNDO' })}
           title="Undo (Ctrl+Z)"
         >
           Undo
@@ -78,7 +70,7 @@ export default function TopBar({ state, dispatch, onSave }: TopBarProps) {
         <button
           className="topbar-btn"
           disabled={future.length === 0}
-          onClick={() => dispatch({ type: "REDO" })}
+          onClick={() => dispatch({ type: 'REDO' })}
           title="Redo (Ctrl+Shift+Z)"
         >
           Redo
@@ -88,15 +80,11 @@ export default function TopBar({ state, dispatch, onSave }: TopBarProps) {
       <div className="topbar-separator" />
 
       <div className="save-indicator-group">
-        <span className={`save-indicator ${ui.dirty ? "unsaved" : "saved"}`}>
-          {ui.dirty ? "Unsaved changes" : "Saved"}
+        <span className={`save-indicator ${ui.dirty ? 'unsaved' : 'saved'}`}>
+          {ui.dirty ? 'Unsaved changes' : 'Saved'}
         </span>
         {ui.dirty && (
-          <button
-            className="topbar-btn save-btn"
-            onClick={onSave}
-            title="Save (Ctrl+S)"
-          >
+          <button className="topbar-btn save-btn" onClick={onSave} title="Save (Ctrl+S)">
             Save
           </button>
         )}
@@ -106,12 +94,12 @@ export default function TopBar({ state, dispatch, onSave }: TopBarProps) {
 
       <div className="topbar-group">
         <button
-          className={`topbar-btn ${ui.showStageEditor ? "active" : ""}`}
-          onClick={() => dispatch({ type: "TOGGLE_STAGE_EDITOR" })}
+          className={`topbar-btn ${ui.showStageEditor ? 'active' : ''}`}
+          onClick={() => dispatch({ type: 'TOGGLE_STAGE_EDITOR' })}
         >
           Stage
         </button>
       </div>
     </div>
-  );
+  )
 }

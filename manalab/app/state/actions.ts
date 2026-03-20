@@ -19,16 +19,38 @@ export type EditorAction =
   | { type: 'PLACE_ENTITY'; entity: Entity; layerId: string; sceneId: string }
   | { type: 'DELETE_ENTITY'; entityId: string; layerId: string; sceneId: string }
   | { type: 'DUPLICATE_ENTITY'; entityId: string; layerId: string; sceneId: string; newId: string }
-  | { type: 'UPDATE_ENTITY_FIELD'; entityId: string; layerId: string; sceneId: string; field: string; value: unknown }
-  | { type: 'TRANSFORM_ENTITY'; entityId: string; layerId: string; sceneId: string; position: Vec3; rotation: Vec3; scale: Vec3 }
+  | {
+      type: 'UPDATE_ENTITY_FIELD'
+      entityId: string
+      layerId: string
+      sceneId: string
+      field: string
+      value: unknown
+    }
+  | {
+      type: 'TRANSFORM_ENTITY'
+      entityId: string
+      layerId: string
+      sceneId: string
+      position: Vec3
+      rotation: Vec3
+      scale: Vec3
+    }
 
   // Load / save
   | { type: 'LOAD_LAYERS'; sceneLayers: Record<string, Record<string, LayerData>> }
   | { type: 'MARK_SAVED' }
 
   // Sub-items
-  | { type: 'TRANSFORM_SUB_ITEM'; entityId: string; layerId: string; sceneId: string;
-      path: SubItemPath; positionField: string; position: Vec3 }
+  | {
+      type: 'TRANSFORM_SUB_ITEM'
+      entityId: string
+      layerId: string
+      sceneId: string
+      path: SubItemPath
+      positionField: string
+      position: Vec3
+    }
 
   // UI (non-undoable)
   | { type: 'SET_TRANSFORM_MODE'; mode: 'translate' | 'rotate' | 'scale' }

@@ -35,23 +35,23 @@ The editor opens at `http://localhost:7320`.
 Create a `manalab.config.ts` in your project root:
 
 ```ts
-import { defineConfig } from "manalab";
+import { defineConfig } from 'manalab'
 
 export default defineConfig({
   assetLibrary: {
     decorations: {
-      oak_tree: { label: "Oak Tree" },
-      rock: { label: "Rock" },
+      oak_tree: { label: 'Oak Tree' },
+      rock: { label: 'Rock' },
     },
   },
   scenes: {
     main: {
-      name: "Main Scene",
+      name: 'Main Scene',
       stage: {
         lighting: {
-          ambientColor: "#c4a882",
+          ambientColor: '#c4a882',
           ambientIntensity: 0.6,
-          sunColor: "#fff5e6",
+          sunColor: '#fff5e6',
           sunIntensity: 1.2,
           sunDirection: [-0.5, -1, -0.3],
         },
@@ -64,30 +64,30 @@ export default defineConfig({
       },
       layers: [
         {
-          id: "decorations",
-          name: "Decorations",
-          type: "decoration",
+          id: 'decorations',
+          name: 'Decorations',
+          type: 'decoration',
           visible: true,
-          file: "decorations.json",
+          file: 'decorations.json',
         },
       ],
     },
   },
   layerTypes: {
     decoration: {
-      label: "Decoration",
-      icon: "🌿",
-      description: "Visual props",
-      renderMode: "gltf",
+      label: 'Decoration',
+      icon: '🌿',
+      description: 'Visual props',
+      renderMode: 'gltf',
       entitySchema: {
-        asset: { type: "assetRef", category: "decorations", label: "Asset" },
-        position: { type: "vec3", label: "Position", default: [0, 0, 0] },
-        rotation: { type: "vec3", label: "Rotation", default: [0, 0, 0] },
-        scale: { type: "vec3", label: "Scale", default: [1, 1, 1] },
+        asset: { type: 'assetRef', category: 'decorations', label: 'Asset' },
+        position: { type: 'vec3', label: 'Position', default: [0, 0, 0] },
+        rotation: { type: 'vec3', label: 'Rotation', default: [0, 0, 0] },
+        scale: { type: 'vec3', label: 'Scale', default: [1, 1, 1] },
       },
     },
   },
-});
+})
 ```
 
 Scene data is saved to `scene-data/` in your project directory.

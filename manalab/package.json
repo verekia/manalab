@@ -1,11 +1,17 @@
 {
   "name": "manalab",
   "version": "0.0.2",
-  "type": "module",
   "license": "MIT",
   "bin": {
     "manalab": "./dist/cli.js"
   },
+  "files": [
+    "dist",
+    "app",
+    "index.html",
+    "public"
+  ],
+  "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -15,22 +21,16 @@
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist",
-    "app",
-    "index.html",
-    "public"
-  ],
   "scripts": {
     "build": "tsup && cp ../README.md .",
     "dev": "tsup --watch"
   },
   "dependencies": {
+    "@vitejs/plugin-react": "^6.0.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "three": "^0.183.2",
-    "vite": "^8.0.1",
-    "@vitejs/plugin-react": "^6.0.1"
+    "vite": "^8.0.1"
   },
   "devDependencies": {
     "@types/node": "^24.12.0",

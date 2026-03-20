@@ -24,7 +24,7 @@ export function manalabConfigPlugin(projectRoot: string): Plugin {
 
         if (!fs.existsSync(configPath)) {
           throw new Error(
-            `Mana Lab: No manalab.config.ts or manalab.config.js found in ${projectRoot}`
+            `Mana Lab: No manalab.config.ts or manalab.config.js found in ${projectRoot}`,
           )
         }
 

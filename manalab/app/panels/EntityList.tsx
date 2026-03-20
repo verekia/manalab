@@ -24,7 +24,7 @@ export default function EntityList({ state, dispatch }: EntityListProps) {
 
   const arrayFieldsWithPosition = layerType
     ? Object.entries(layerType.entitySchema).filter(
-        ([, def]) => def.type === 'array' && (def as ArrayField).itemPositionField
+        ([, def]) => def.type === 'array' && (def as ArrayField).itemPositionField,
       )
     : []
 
@@ -42,7 +42,11 @@ export default function EntityList({ state, dispatch }: EntityListProps) {
         )}
         {layerData.entities.map((entity) => {
           const isSelected = entity.id === ui.selectedEntityId
-          const label = (entity.name as string) || (entity.asset as string) || (entity.shape as string) || entity.id
+          const label =
+            (entity.name as string) ||
+            (entity.asset as string) ||
+            (entity.shape as string) ||
+            entity.id
 
           return (
             <EntityRow
@@ -74,7 +78,16 @@ interface EntityRowProps {
   onSelect: () => void
 }
 
-function EntityRow({ entityId, label, entity, isSelected, arrayFields, ui, dispatch, onSelect }: EntityRowProps) {
+function EntityRow({
+  entityId,
+  label,
+  entity,
+  isSelected,
+  arrayFields,
+  ui,
+  dispatch,
+  onSelect,
+}: EntityRowProps) {
   const [expanded, setExpanded] = useState(false)
   const hasSubItems = arrayFields.length > 0
 
@@ -83,14 +96,14 @@ function EntityRow({ entityId, label, entity, isSelected, arrayFields, ui, dispa
 
   return (
     <>
-      <div
-        className={`entity-row ${isSelected ? 'selected' : ''}`}
-        onClick={onSelect}
-      >
+      <div className={`entity-row ${isSelected ? 'selected' : ''}`} onClick={onSelect}>
         {hasSubItems && (
           <span
             className="array-item-chevron"
-            onClick={(e) => { e.stopPropagation(); setExpanded(!expanded) }}
+            onClick={(e) => {
+              e.stopPropagation()
+              setExpanded(!expanded)
+            }}
             style={{ cursor: 'pointer' }}
           >
             {expanded ? 'v' : '>'}
@@ -99,39 +112,45 @@ function EntityRow({ entityId, label, entity, isSelected, arrayFields, ui, dispa
         <span className="entity-label">{label}</span>
         <span className="entity-pos">{posStr}</span>
       </div>
-      {expanded && isSelected && arrayFields.map(([fieldKey, fieldDef]) => {
-        const arrDef = fieldDef as ArrayField
-        const items = (entity[fieldKey] as Record<string, unknown>[]) || []
-        return items.map((item, index) => {
-          const path = `${entityId}:${fieldKey}:${index}`
-          const isHidden = ui.hiddenSubItems.includes(path)
-          const isSubSelected = ui.selectedSubItem?.[0]?.field === fieldKey && ui.selectedSubItem?.[0]?.index === index
-          const summary = Object.values(item).find((v) => typeof v === 'string' && v) as string || `#${index}`
+      {expanded &&
+        isSelected &&
+        arrayFields.map(([fieldKey, _fieldDef]) => {
+          const items = (entity[fieldKey] as Record<string, unknown>[]) || []
+          return items.map((item, index) => {
+            const path = `${entityId}:${fieldKey}:${index}`
+            const isHidden = ui.hiddenSubItems.includes(path)
+            const isSubSelected =
+              ui.selectedSubItem?.[0]?.field === fieldKey &&
+              ui.selectedSubItem?.[0]?.index === index
+            const summary =
+              (Object.values(item).find((v) => typeof v === 'string' && v) as string) || `#${index}`
 
-          return (
-            <div
-              key={path}
-              className={`sub-item-row ${isSubSelected ? 'selected' : ''}`}
-              onClick={() => {
-                dispatch({ type: 'SELECT_ENTITY', entityId })
-                dispatch({ type: 'SELECT_SUB_ITEM', subItem: [{ field: fieldKey, index }] })
-              }}
-            >
-              <span className="sub-item-label">#{index} {summary}</span>
-              <button
-                className="sub-item-vis-btn"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  dispatch({ type: 'TOGGLE_SUB_ITEM_VISIBILITY', path })
+            return (
+              <div
+                key={path}
+                className={`sub-item-row ${isSubSelected ? 'selected' : ''}`}
+                onClick={() => {
+                  dispatch({ type: 'SELECT_ENTITY', entityId })
+                  dispatch({ type: 'SELECT_SUB_ITEM', subItem: [{ field: fieldKey, index }] })
                 }}
-                title={isHidden ? 'Show' : 'Hide'}
               >
-                {isHidden ? '-' : 'o'}
-              </button>
-            </div>
-          )
-        })
-      })}
+                <span className="sub-item-label">
+                  #{index} {summary}
+                </span>
+                <button
+                  className="sub-item-vis-btn"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    dispatch({ type: 'TOGGLE_SUB_ITEM_VISIBILITY', path })
+                  }}
+                  title={isHidden ? 'Show' : 'Hide'}
+                >
+                  {isHidden ? '-' : 'o'}
+                </button>
+              </div>
+            )
+          })
+        })}
     </>
   )
 }

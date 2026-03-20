@@ -7,12 +7,7 @@ const scene = new THREE.Scene()
 scene.background = new THREE.Color('#87CEEB')
 
 // Camera
-const camera = new THREE.PerspectiveCamera(
-  60,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  100
-)
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100)
 camera.position.set(12, 8, 12)
 camera.lookAt(0, 0, 0)
 
@@ -33,7 +28,7 @@ scene.add(sun)
 // Ground
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(50, 50),
-  new THREE.MeshStandardMaterial({ color: '#4a7c59' })
+  new THREE.MeshStandardMaterial({ color: '#4a7c59' }),
 )
 ground.rotation.x = -Math.PI / 2
 ground.receiveShadow = true
@@ -45,7 +40,7 @@ function createTree(): THREE.Group {
 
   const trunk = new THREE.Mesh(
     new THREE.CylinderGeometry(0.15, 0.2, 1, 8),
-    new THREE.MeshStandardMaterial({ color: '#8B4513' })
+    new THREE.MeshStandardMaterial({ color: '#8B4513' }),
   )
   trunk.position.y = 0.5
   trunk.castShadow = true
@@ -53,7 +48,7 @@ function createTree(): THREE.Group {
 
   const foliage = new THREE.Mesh(
     new THREE.ConeGeometry(0.8, 1.5, 8),
-    new THREE.MeshStandardMaterial({ color: '#2d7d3a' })
+    new THREE.MeshStandardMaterial({ color: '#2d7d3a' }),
   )
   foliage.position.y = 1.75
   foliage.castShadow = true
@@ -76,7 +71,7 @@ for (const entity of sceneData.entities) {
 
 // Render colliders from scene data
 for (const entity of colliderData.entities) {
-  const [x, y, z] = entity.position
+  const [x, _y, z] = entity.position
   const dims = entity.dimensions || [1, 2, 1]
 
   let geometry: THREE.BufferGeometry
@@ -87,16 +82,13 @@ for (const entity of colliderData.entities) {
   }
 
   const edges = new THREE.EdgesGeometry(geometry)
-  const line = new THREE.LineSegments(
-    edges,
-    new THREE.LineBasicMaterial({ color: '#00d4ff' })
-  )
+  const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: '#00d4ff' }))
   line.position.set(x, dims[1] / 2, z)
   scene.add(line)
 
   const fill = new THREE.Mesh(
     geometry,
-    new THREE.MeshBasicMaterial({ color: '#00d4ff', transparent: true, opacity: 0.1 })
+    new THREE.MeshBasicMaterial({ color: '#00d4ff', transparent: true, opacity: 0.1 }),
   )
   fill.position.set(x, dims[1] / 2, z)
   scene.add(fill)

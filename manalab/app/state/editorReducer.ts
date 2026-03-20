@@ -15,7 +15,7 @@ function pushUndo(state: EditorState): EditorState {
 function updateNestedItem(
   obj: Record<string, unknown>,
   path: SubItemPath,
-  update: Record<string, unknown>
+  update: Record<string, unknown>,
 ): Record<string, unknown> {
   if (path.length === 0) return { ...obj, ...update }
   const [head, ...rest] = path
@@ -27,7 +27,7 @@ function updateNestedItem(
 function documentReducer(
   doc: DocumentState,
   action: EditorAction,
-  ui: UIState
+  _ui: UIState,
 ): DocumentState | null {
   switch (action.type) {
     case 'PLACE_ENTITY': {
@@ -106,7 +106,7 @@ function documentReducer(
             [layerId]: {
               ...layer,
               entities: layer.entities.map((e) =>
-                e.id === entityId ? { ...e, [field]: value } : e
+                e.id === entityId ? { ...e, [field]: value } : e,
               ),
             },
           },
@@ -127,7 +127,7 @@ function documentReducer(
             [layerId]: {
               ...layer,
               entities: layer.entities.map((e) =>
-                e.id === entityId ? { ...e, position, rotation, scale } : e
+                e.id === entityId ? { ...e, position, rotation, scale } : e,
               ),
             },
           },
@@ -235,15 +235,33 @@ function documentReducer(
 function uiReducer(ui: UIState, action: EditorAction): UIState {
   switch (action.type) {
     case 'SWITCH_SCENE':
-      return { ...ui, currentSceneId: action.sceneId, activeLayerId: '', selectedEntityId: null, selectedSubItem: null, placementTool: null }
+      return {
+        ...ui,
+        currentSceneId: action.sceneId,
+        activeLayerId: '',
+        selectedEntityId: null,
+        selectedSubItem: null,
+        placementTool: null,
+      }
     case 'SET_ACTIVE_LAYER':
-      return { ...ui, activeLayerId: action.layerId, selectedEntityId: null, selectedSubItem: null, placementTool: null }
+      return {
+        ...ui,
+        activeLayerId: action.layerId,
+        selectedEntityId: null,
+        selectedSubItem: null,
+        placementTool: null,
+      }
     case 'SET_TRANSFORM_MODE':
       return { ...ui, transformMode: action.mode }
     case 'SET_PLACEMENT_TOOL':
       return { ...ui, placementTool: action.tool, selectedEntityId: null, selectedSubItem: null }
     case 'SELECT_ENTITY':
-      return { ...ui, selectedEntityId: action.entityId, selectedSubItem: null, placementTool: action.entityId ? null : ui.placementTool }
+      return {
+        ...ui,
+        selectedEntityId: action.entityId,
+        selectedSubItem: null,
+        placementTool: action.entityId ? null : ui.placementTool,
+      }
     case 'SELECT_SUB_ITEM':
       return { ...ui, selectedSubItem: action.subItem }
     case 'TOGGLE_STAGE_EDITOR':
@@ -325,7 +343,7 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
             [sceneId]: {
               ...scene,
               layers: scene.layers.map((l) =>
-                l.id === action.layerId ? { ...l, visible: !l.visible } : l
+                l.id === action.layerId ? { ...l, visible: !l.visible } : l,
               ),
             },
           },

@@ -14,17 +14,14 @@ export function renderStage(scene: THREE.Scene, stage: StageConfig): StageObject
   // Ambient light
   const ambient = new THREE.AmbientLight(
     stage.lighting.ambientColor,
-    stage.lighting.ambientIntensity
+    stage.lighting.ambientIntensity,
   )
   scene.add(ambient)
   lights.push(ambient)
 
   // Directional (sun) light
   const dir = stage.lighting.sunDirection
-  const sun = new THREE.DirectionalLight(
-    stage.lighting.sunColor,
-    stage.lighting.sunIntensity
-  )
+  const sun = new THREE.DirectionalLight(stage.lighting.sunColor, stage.lighting.sunIntensity)
   sun.position.set(-dir[0] * 20, -dir[1] * 20, -dir[2] * 20)
   sun.castShadow = true
   scene.add(sun)
