@@ -102,5 +102,35 @@ export default function AssetPalette({ state, dispatch }: AssetPaletteProps) {
     )
   }
 
+  if (layerType.renderMode === 'markers') {
+    const isActive = ui.placementTool?.type === 'marker'
+    return (
+      <div className="panel-section">
+        <div className="panel-header">PLACE {layerType.label.toUpperCase()}</div>
+        <div className="palette-list">
+          <button
+            className={`palette-item ${isActive ? 'active' : ''}`}
+            onClick={() =>
+              dispatch({
+                type: 'SET_PLACEMENT_TOOL',
+                tool: isActive ? null : { type: 'marker' },
+              })
+            }
+          >
+            New {layerType.label}
+          </button>
+        </div>
+        {ui.placementTool && (
+          <button
+            className="palette-cancel"
+            onClick={() => dispatch({ type: 'SET_PLACEMENT_TOOL', tool: null })}
+          >
+            Cancel Placement (Esc)
+          </button>
+        )}
+      </div>
+    )
+  }
+
   return null
 }

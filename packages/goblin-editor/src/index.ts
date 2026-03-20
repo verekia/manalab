@@ -12,6 +12,8 @@ export type {
   RefField,
   RefArrayField,
   EnumArrayField,
+  ObjectField,
+  ArrayField,
   EntitySchema,
   LayerTypeDef,
   AssetEntry,

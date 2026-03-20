@@ -41,10 +41,12 @@ export const initialEditorState: EditorState = {
     currentSceneId: firstSceneId,
     activeLayerId: firstLayerId,
     selectedEntityId: null,
+    selectedSubItem: null,
     transformMode: 'translate',
     placementTool: null,
     showStageEditor: false,
     showExportDialog: false,
+    hiddenSubItems: [],
     dirty: false,
   },
 }

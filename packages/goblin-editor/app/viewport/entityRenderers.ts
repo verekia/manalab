@@ -130,6 +130,92 @@ function createColliderMesh(entity: Entity): THREE.Group {
   return group
 }
 
+function createMarkerMesh(entity: Entity): THREE.Group {
+  const group = new THREE.Group()
+
+  // Orange sphere
+  const sphere = new THREE.Mesh(
+    new THREE.SphereGeometry(0.4, 16, 12),
+    new THREE.MeshStandardMaterial({ color: '#ff8c00' })
+  )
+  sphere.position.y = 2.2
+  group.add(sphere)
+
+  // Pole
+  const pole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.06, 0.06, 2, 8),
+    new THREE.MeshStandardMaterial({ color: '#cc7000' })
+  )
+  pole.position.y = 1
+  group.add(pole)
+
+  // Label sprite
+  const name = (entity.name as string) || entity.id
+  const canvas = document.createElement('canvas')
+  canvas.width = 256
+  canvas.height = 64
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = 'rgba(0,0,0,0.6)'
+  ctx.roundRect(0, 0, 256, 64, 8)
+  ctx.fill()
+  ctx.fillStyle = '#ff8c00'
+  ctx.font = 'bold 22px monospace'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(name.slice(0, 20), 128, 32)
+
+  const tex = new THREE.CanvasTexture(canvas)
+  const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true })
+  const sprite = new THREE.Sprite(spriteMat)
+  sprite.position.y = 3.2
+  sprite.scale.set(2, 0.5, 1)
+  group.add(sprite)
+
+  return group
+}
+
+const SUB_ITEM_COLORS = ['#4ecdc4', '#5c7cfa', '#ff6b9d', '#ffd93d', '#6bcb77', '#c084fc']
+
+export function createSubItemMesh(fieldKey: string, index: number, item: Record<string, unknown>): THREE.Group {
+  const group = new THREE.Group()
+  const color = SUB_ITEM_COLORS[index % SUB_ITEM_COLORS.length]
+
+  // Colored cube
+  const cube = new THREE.Mesh(
+    new THREE.BoxGeometry(0.5, 0.5, 0.5),
+    new THREE.MeshStandardMaterial({ color })
+  )
+  cube.position.y = 0.25
+  group.add(cube)
+
+  // Index label
+  const canvas = document.createElement('canvas')
+  canvas.width = 128
+  canvas.height = 64
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = 'rgba(0,0,0,0.6)'
+  ctx.roundRect(0, 0, 128, 64, 8)
+  ctx.fill()
+  ctx.fillStyle = color
+  ctx.font = 'bold 28px monospace'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(`#${index}`, 64, 32)
+
+  const tex = new THREE.CanvasTexture(canvas)
+  const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true })
+  const sprite = new THREE.Sprite(spriteMat)
+  sprite.position.y = 1.2
+  sprite.scale.set(1, 0.5, 1)
+  group.add(sprite)
+
+  group.userData.isSubItem = true
+  group.userData.fieldKey = fieldKey
+  group.userData.itemIndex = index
+
+  return group
+}
+
 export function createEntityMesh(
   entity: Entity,
   layerType: LayerTypeDef,
@@ -137,6 +223,10 @@ export function createEntityMesh(
 ): THREE.Object3D {
   if (layerType.renderMode === 'wireframe') {
     return createColliderMesh(entity)
+  }
+
+  if (layerType.renderMode === 'markers') {
+    return createMarkerMesh(entity)
   }
 
   // gltf / decoration — use placeholder for now (glTF loading is async & optional)

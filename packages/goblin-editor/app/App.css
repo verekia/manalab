@@ -725,6 +725,162 @@ html, body, #root {
   background: #1a2a4a;
 }
 
+/* ── Nested/Array Inspector Fields ────────────────────────── */
+.inspector-nested {
+  border-left: 2px solid var(--border);
+  margin-left: 4px;
+  padding-left: 4px;
+}
+
+.inspector-textarea {
+  width: 100%;
+  background: var(--bg-input);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  resize: vertical;
+  min-height: 48px;
+}
+
+.inspector-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.array-item {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin: 4px 0;
+  overflow: hidden;
+}
+
+.array-item.selected {
+  border-color: var(--selection);
+}
+
+.array-item-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  cursor: pointer;
+  font-size: 10px;
+  user-select: none;
+}
+
+.array-item-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.array-item-chevron {
+  font-size: 8px;
+  color: var(--text-muted);
+  min-width: 10px;
+}
+
+.array-item-title {
+  flex: 1;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.array-item-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.array-item-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+
+.array-item-btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.array-item-btn.danger:hover {
+  color: var(--accent);
+}
+
+.array-item-body {
+  border-top: 1px solid var(--border);
+  padding: 2px 0;
+}
+
+.array-add-btn {
+  width: 100%;
+  background: none;
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  border-radius: 4px;
+  padding: 4px;
+  font-size: 10px;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.array-add-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Sub-item rows in entity list ────────────────────────── */
+.sub-item-row {
+  display: flex;
+  align-items: center;
+  padding: 2px 12px 2px 28px;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 10px;
+  transition: background 0.1s;
+}
+
+.sub-item-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sub-item-row.selected {
+  background: rgba(255, 204, 0, 0.08);
+}
+
+.sub-item-label {
+  flex: 1;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub-item-vis-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  padding: 1px;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.sub-item-vis-btn:hover {
+  opacity: 1;
+}
+
 /* ── Scrollbar Styling ───────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;

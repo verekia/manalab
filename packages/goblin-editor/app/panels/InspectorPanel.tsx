@@ -1,7 +1,8 @@
-import { EditorState, Vec3, SchemaField, Entity, AssetCategory } from '../state/types'
+import { EditorState, Vec3, SchemaField, ArrayField } from '../state/types'
 import { EditorAction } from '../state/actions'
 import { generateId } from '../lib/idGen'
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { getFieldDefault, buildArrayItemDefault } from '../lib/schemaDefaults'
+import { useState, useEffect } from 'react'
 
 interface InspectorProps {
   state: EditorState
@@ -83,6 +84,8 @@ export default function InspectorPanel({ state, dispatch }: InspectorProps) {
             value={entity[fieldKey]}
             onChange={(val) => updateField(fieldKey, val)}
             assetLibrary={present.project.assetLibrary}
+            selectedSubItem={ui.selectedSubItem}
+            entityId={entityId}
           />
         ))}
 
@@ -107,9 +110,11 @@ interface FieldEditorProps {
   value: unknown
   onChange: (value: unknown) => void
   assetLibrary: Record<string, Record<string, { label: string }>>
+  selectedSubItem?: { field: string; index: number } | null
+  entityId?: string
 }
 
-function FieldEditor({ fieldKey, fieldDef, value, onChange, assetLibrary }: FieldEditorProps) {
+function FieldEditor({ fieldKey, fieldDef, value, onChange, assetLibrary, selectedSubItem, entityId }: FieldEditorProps) {
   switch (fieldDef.type) {
     case 'vec3':
       return <Vec3Editor label={fieldDef.label} value={value as Vec3} onChange={onChange} />
@@ -186,9 +191,170 @@ function FieldEditor({ fieldKey, fieldDef, value, onChange, assetLibrary }: Fiel
           </label>
         </div>
       )
+    case 'richtext':
+      return (
+        <div className="inspector-field">
+          <div className="inspector-field-label">{fieldDef.label}</div>
+          <textarea
+            className="inspector-textarea"
+            value={(value as string) || ''}
+            rows={3}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        </div>
+      )
+    case 'object': {
+      const objValue = (value as Record<string, unknown>) || {}
+      return (
+        <div className="inspector-field">
+          <div className="inspector-field-label">{fieldDef.label}</div>
+          <div className="inspector-nested">
+            {Object.entries(fieldDef.fields).map(([subKey, subDef]) => (
+              <FieldEditor
+                key={subKey}
+                fieldKey={subKey}
+                fieldDef={subDef}
+                value={objValue[subKey]}
+                onChange={(subVal) => onChange({ ...objValue, [subKey]: subVal })}
+                assetLibrary={assetLibrary}
+              />
+            ))}
+          </div>
+        </div>
+      )
+    }
+    case 'array': {
+      const arrValue = (value as Record<string, unknown>[]) || []
+      const updateArray = (newArr: Record<string, unknown>[]) => onChange(newArr)
+      return (
+        <ArrayFieldEditor
+          fieldKey={fieldKey}
+          fieldDef={fieldDef}
+          items={arrValue}
+          onChange={updateArray}
+          assetLibrary={assetLibrary}
+          selectedSubItem={selectedSubItem}
+          entityId={entityId}
+        />
+      )
+    }
     default:
       return null
   }
+}
+
+interface ArrayFieldEditorProps {
+  fieldKey: string
+  fieldDef: ArrayField
+  items: Record<string, unknown>[]
+  onChange: (items: Record<string, unknown>[]) => void
+  assetLibrary: Record<string, Record<string, { label: string }>>
+  selectedSubItem?: { field: string; index: number } | null
+  entityId?: string
+}
+
+function ArrayFieldEditor({ fieldKey, fieldDef, items, onChange, assetLibrary, selectedSubItem, entityId }: ArrayFieldEditorProps) {
+  const addItem = () => {
+    const newItem = buildArrayItemDefault(fieldDef)
+    onChange([...items, newItem])
+  }
+
+  const removeItem = (index: number) => {
+    onChange(items.filter((_, i) => i !== index))
+  }
+
+  const moveItem = (index: number, direction: -1 | 1) => {
+    const newIndex = index + direction
+    if (newIndex < 0 || newIndex >= items.length) return
+    const newItems = [...items]
+    ;[newItems[index], newItems[newIndex]] = [newItems[newIndex], newItems[index]]
+    onChange(newItems)
+  }
+
+  const updateItem = (index: number, newItem: Record<string, unknown>) => {
+    const newItems = [...items]
+    newItems[index] = newItem
+    onChange(newItems)
+  }
+
+  return (
+    <div className="inspector-field">
+      <div className="inspector-field-label">{fieldDef.label} ({items.length})</div>
+      <div className="inspector-nested">
+        {items.map((item, index) => (
+          <ArrayItemEditor
+            key={index}
+            index={index}
+            item={item}
+            fieldDef={fieldDef}
+            onChange={(newItem) => updateItem(index, newItem)}
+            onRemove={() => removeItem(index)}
+            onMoveUp={() => moveItem(index, -1)}
+            onMoveDown={() => moveItem(index, 1)}
+            isFirst={index === 0}
+            isLast={index === items.length - 1}
+            assetLibrary={assetLibrary}
+            isSelected={selectedSubItem?.field === fieldKey && selectedSubItem?.index === index}
+          />
+        ))}
+        <button className="array-add-btn" onClick={addItem}>
+          + Add Item
+        </button>
+      </div>
+    </div>
+  )
+}
+
+interface ArrayItemEditorProps {
+  index: number
+  item: Record<string, unknown>
+  fieldDef: ArrayField
+  onChange: (item: Record<string, unknown>) => void
+  onRemove: () => void
+  onMoveUp: () => void
+  onMoveDown: () => void
+  isFirst: boolean
+  isLast: boolean
+  assetLibrary: Record<string, Record<string, { label: string }>>
+  isSelected: boolean
+}
+
+function ArrayItemEditor({ index, item, fieldDef, onChange, onRemove, onMoveUp, onMoveDown, isFirst, isLast, assetLibrary, isSelected }: ArrayItemEditorProps) {
+  const [collapsed, setCollapsed] = useState(!isSelected)
+
+  useEffect(() => {
+    if (isSelected) setCollapsed(false)
+  }, [isSelected])
+
+  const summary = Object.values(item).find((v) => typeof v === 'string' && v) as string || `Item ${index}`
+
+  return (
+    <div className={`array-item ${isSelected ? 'selected' : ''}`}>
+      <div className="array-item-header" onClick={() => setCollapsed(!collapsed)}>
+        <span className="array-item-chevron">{collapsed ? '>' : 'v'}</span>
+        <span className="array-item-title">#{index} {summary}</span>
+        <div className="array-item-actions">
+          {!isFirst && <button className="array-item-btn" onClick={(e) => { e.stopPropagation(); onMoveUp() }} title="Move up">^</button>}
+          {!isLast && <button className="array-item-btn" onClick={(e) => { e.stopPropagation(); onMoveDown() }} title="Move down">v</button>}
+          <button className="array-item-btn danger" onClick={(e) => { e.stopPropagation(); onRemove() }} title="Remove">x</button>
+        </div>
+      </div>
+      {!collapsed && (
+        <div className="array-item-body">
+          {Object.entries(fieldDef.itemFields).map(([subKey, subDef]) => (
+            <FieldEditor
+              key={subKey}
+              fieldKey={subKey}
+              fieldDef={subDef}
+              value={item[subKey]}
+              onChange={(subVal) => onChange({ ...item, [subKey]: subVal })}
+              assetLibrary={assetLibrary}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 function Vec3Editor({

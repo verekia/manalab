@@ -26,12 +26,18 @@ export type EditorAction =
   | { type: 'LOAD_LAYERS'; sceneLayers: Record<string, Record<string, LayerData>> }
   | { type: 'MARK_SAVED' }
 
+  // Sub-items
+  | { type: 'TRANSFORM_SUB_ITEM'; entityId: string; layerId: string; sceneId: string;
+      arrayField: string; itemIndex: number; positionField: string; position: Vec3 }
+
   // UI (non-undoable)
   | { type: 'SET_TRANSFORM_MODE'; mode: 'translate' | 'rotate' | 'scale' }
   | { type: 'SET_PLACEMENT_TOOL'; tool: PlacementTool }
   | { type: 'SELECT_ENTITY'; entityId: string | null }
+  | { type: 'SELECT_SUB_ITEM'; subItem: { field: string; index: number } | null }
   | { type: 'TOGGLE_STAGE_EDITOR' }
   | { type: 'TOGGLE_EXPORT_DIALOG' }
+  | { type: 'TOGGLE_SUB_ITEM_VISIBILITY'; path: string }
 
   // Stage (undoable)
   | { type: 'UPDATE_STAGE'; sceneId: string; stage: StageConfig }

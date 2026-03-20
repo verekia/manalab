@@ -2,11 +2,12 @@ import { useEffect, useRef, useCallback } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js'
-import type { EditorState, Entity, Vec3 } from '../state/types'
+import type { EditorState, Entity, Vec3, ArrayField } from '../state/types'
 import type { EditorAction } from '../state/actions'
 import { generateId } from '../lib/idGen'
 import { roundVec3 } from '../lib/math'
-import { createEntityMesh } from './entityRenderers'
+import { buildDefaultEntity } from '../lib/schemaDefaults'
+import { createEntityMesh, createSubItemMesh } from './entityRenderers'
 import { renderStage } from './stageRenderer'
 import type { StageObjects } from './stageRenderer'
 
@@ -77,8 +78,22 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
       if (!event.value) {
         // Drag ended — commit transform
         const obj = transformControls?.object
-        if (obj && obj.userData.entityId) {
-          const s = stateRef.current
+        if (!obj) return
+        const s = stateRef.current
+
+        if (obj.userData.isSubItem && obj.userData.entityId) {
+          const pos = roundVec3([obj.position.x, obj.position.y, obj.position.z])
+          dispatchRef.current({
+            type: 'TRANSFORM_SUB_ITEM',
+            entityId: obj.userData.entityId,
+            layerId: s.ui.activeLayerId,
+            sceneId: s.ui.currentSceneId,
+            arrayField: obj.userData.fieldKey,
+            itemIndex: obj.userData.itemIndex,
+            positionField: obj.userData.positionField,
+            position: pos,
+          })
+        } else if (obj.userData.entityId) {
           const pos = roundVec3([obj.position.x, obj.position.y, obj.position.z])
           const rot = roundVec3([obj.rotation.x, obj.rotation.y, obj.rotation.z])
           const scl = roundVec3([obj.scale.x, obj.scale.y, obj.scale.z])
@@ -151,13 +166,18 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
 
       const hits = raycaster.intersectObjects(activeLayerMeshes, false)
       if (hits.length > 0) {
-        // Find the entity root
+        // Find the root (entity or sub-item)
         let hitObj = hits[0].object
         while (hitObj.parent && !hitObj.userData.entityId) {
           hitObj = hitObj.parent
         }
         if (hitObj.userData.entityId) {
-          d({ type: 'SELECT_ENTITY', entityId: hitObj.userData.entityId })
+          if (hitObj.userData.isSubItem) {
+            d({ type: 'SELECT_ENTITY', entityId: hitObj.userData.entityId })
+            d({ type: 'SELECT_SUB_ITEM', subItem: { field: hitObj.userData.fieldKey, index: hitObj.userData.itemIndex } })
+          } else {
+            d({ type: 'SELECT_ENTITY', entityId: hitObj.userData.entityId })
+          }
           return
         }
       }
@@ -169,10 +189,10 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
         if (groundHits.length > 0) {
           const pt = groundHits[0].point
           const pos: Vec3 = roundVec3([pt.x, 0, pt.z])
-          const id = generateId()
 
           let entity: Entity
           if (s.ui.placementTool.type === 'decoration') {
+            const id = generateId()
             entity = {
               id,
               asset: s.ui.placementTool.asset,
@@ -180,7 +200,8 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
               rotation: [0, 0, 0] as Vec3,
               scale: [1, 1, 1] as Vec3,
             }
-          } else {
+          } else if (s.ui.placementTool.type === 'collider') {
+            const id = generateId()
             entity = {
               id,
               shape: s.ui.placementTool.shape,
@@ -188,6 +209,15 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
               rotation: [0, 0, 0] as Vec3,
               dimensions: [1, 2, 1] as Vec3,
             }
+          } else {
+            // marker
+            const layerRef = s.present.project.scenes[s.ui.currentSceneId]?.layers.find(
+              (l) => l.id === s.ui.activeLayerId
+            )
+            const layerTypeDef = layerRef ? s.present.project.layerTypes[layerRef.type] : null
+            if (!layerTypeDef) return
+            entity = buildDefaultEntity(layerTypeDef.entitySchema)
+            entity.position = pos
           }
 
           d({
@@ -196,7 +226,7 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
             layerId: s.ui.activeLayerId,
             sceneId: s.ui.currentSceneId,
           })
-          d({ type: 'SELECT_ENTITY', entityId: id })
+          d({ type: 'SELECT_ENTITY', entityId: entity.id })
         }
         return
       }
@@ -287,10 +317,23 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
         existingIds.add(entity.id)
         let mesh = entityMeshMap.get(entity.id)
 
+        // For marker-mode entities, recreate mesh when entity data changes
+        if (mesh && layerType.renderMode === 'markers') {
+          const entityHash = JSON.stringify(entity)
+          if (mesh.userData.entityHash !== entityHash) {
+            scene.remove(mesh)
+            entityMeshMap.delete(entity.id)
+            mesh = undefined
+          }
+        }
+
         if (!mesh) {
           mesh = createEntityMesh(entity, layerType, s.present.project.assetLibrary)
           mesh.userData.entityId = entity.id
           mesh.userData.layerId = layer.id
+          if (layerType.renderMode === 'markers') {
+            mesh.userData.entityHash = JSON.stringify(entity)
+          }
           scene.add(mesh)
           entityMeshMap.set(entity.id, mesh)
         }
@@ -320,9 +363,68 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
         }
 
         // Selection highlight
-        updateSelectionHighlight(mesh, entity.id === s.ui.selectedEntityId)
+        updateSelectionHighlight(mesh, entity.id === s.ui.selectedEntityId && !s.ui.selectedSubItem)
 
         mesh.userData.layerId = layer.id
+
+        // Sub-item meshes for array fields with itemPositionField
+        for (const [fieldKey, fieldDef] of Object.entries(layerType.entitySchema)) {
+          if (fieldDef.type !== 'array') continue
+          const arrDef = fieldDef as ArrayField
+          if (!arrDef.itemPositionField) continue
+
+          const items = (entity[fieldKey] as Record<string, unknown>[]) || []
+          for (let i = 0; i < items.length; i++) {
+            const subKey = `${entity.id}:${fieldKey}:${i}`
+            existingIds.add(subKey)
+            let subMesh = entityMeshMap.get(subKey)
+
+            // Recreate if item data changed
+            if (subMesh) {
+              const itemHash = JSON.stringify(items[i])
+              if (subMesh.userData.itemHash !== itemHash) {
+                scene.remove(subMesh)
+                entityMeshMap.delete(subKey)
+                subMesh = undefined
+              }
+            }
+
+            if (!subMesh) {
+              subMesh = createSubItemMesh(fieldKey, i, items[i])
+              subMesh.userData.entityId = entity.id
+              subMesh.userData.layerId = layer.id
+              subMesh.userData.isSubItem = true
+              subMesh.userData.fieldKey = fieldKey
+              subMesh.userData.itemIndex = i
+              subMesh.userData.positionField = arrDef.itemPositionField
+              subMesh.userData.itemHash = JSON.stringify(items[i])
+              scene.add(subMesh)
+              entityMeshMap.set(subKey, subMesh)
+            }
+
+            // Position from item's position field
+            const itemPos = (items[i][arrDef.itemPositionField] as Vec3) || [0, 0, 0]
+            subMesh.position.set(itemPos[0], itemPos[1], itemPos[2])
+
+            // Visibility
+            const subPath = `${entity.id}:${fieldKey}:${i}`
+            const isSubHidden = s.ui.hiddenSubItems.includes(subPath)
+            if (!isVisible || isSubHidden) {
+              subMesh.visible = false
+            } else {
+              subMesh.visible = true
+              setMeshOpacity(subMesh, isActive ? 1.0 : 0.4)
+            }
+
+            // Sub-item selection highlight
+            const isSubSelected = s.ui.selectedEntityId === entity.id &&
+              s.ui.selectedSubItem?.field === fieldKey &&
+              s.ui.selectedSubItem?.index === i
+            updateSelectionHighlight(subMesh, isSubSelected)
+
+            subMesh.userData.layerId = layer.id
+          }
+        }
       }
     }
 
@@ -334,15 +436,27 @@ export default function ThreeViewport({ state, dispatch }: ViewportProps) {
       }
     })
 
-    // Attach transform controls to selected entity
+    // Attach transform controls to selected entity or sub-item
     if (s.ui.selectedEntityId && transformControls) {
-      const selectedMesh = entityMeshMap.get(s.ui.selectedEntityId)
-      if (selectedMesh) {
-        transformControls.attach(selectedMesh)
-        transformControls.setMode(
-          s.ui.transformMode === 'translate' ? 'translate' :
-          s.ui.transformMode === 'rotate' ? 'rotate' : 'scale'
-        )
+      let targetMesh: THREE.Object3D | undefined
+      if (s.ui.selectedSubItem) {
+        const subKey = `${s.ui.selectedEntityId}:${s.ui.selectedSubItem.field}:${s.ui.selectedSubItem.index}`
+        targetMesh = entityMeshMap.get(subKey)
+      } else {
+        targetMesh = entityMeshMap.get(s.ui.selectedEntityId)
+      }
+
+      if (targetMesh) {
+        transformControls.attach(targetMesh)
+        // Sub-items only support translate
+        if (s.ui.selectedSubItem) {
+          transformControls.setMode('translate')
+        } else {
+          transformControls.setMode(
+            s.ui.transformMode === 'translate' ? 'translate' :
+            s.ui.transformMode === 'rotate' ? 'rotate' : 'scale'
+          )
+        }
         transformControls.getHelper().visible = true
       } else {
         transformControls.detach()

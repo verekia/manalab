@@ -49,6 +49,19 @@ export interface EnumArrayField extends SchemaFieldBase {
   options: string[]
 }
 
+export interface ObjectField extends SchemaFieldBase {
+  type: 'object'
+  fields: Record<string, SchemaField>
+  default?: Record<string, unknown>
+}
+
+export interface ArrayField extends SchemaFieldBase {
+  type: 'array'
+  itemFields: Record<string, SchemaField>
+  itemPositionField?: string
+  default?: Record<string, unknown>[]
+}
+
 export type SchemaField =
   | Vec3Field
   | EnumField
@@ -60,6 +73,8 @@ export type SchemaField =
   | RefField
   | RefArrayField
   | EnumArrayField
+  | ObjectField
+  | ArrayField
 
 export type EntitySchema = Record<string, SchemaField>
 
@@ -163,6 +178,7 @@ export interface LayerData {
 export type PlacementTool =
   | { type: 'decoration'; asset: string }
   | { type: 'collider'; shape: string }
+  | { type: 'marker' }
   | null
 
 // ── UI state ─────────────────────────────────────────────
@@ -170,10 +186,12 @@ export interface UIState {
   currentSceneId: string
   activeLayerId: string
   selectedEntityId: string | null
+  selectedSubItem: { field: string; index: number } | null
   transformMode: 'translate' | 'rotate' | 'scale'
   placementTool: PlacementTool
   showStageEditor: boolean
   showExportDialog: boolean
+  hiddenSubItems: string[]
   dirty: boolean
 }
 

@@ -199,7 +199,9 @@ export default function App() {
           <span>
             Placing: {state.ui.placementTool.type === 'decoration'
               ? state.ui.placementTool.asset
-              : state.ui.placementTool.shape}
+              : state.ui.placementTool.type === 'collider'
+              ? state.ui.placementTool.shape
+              : 'New marker'}
           </span>
         )}
       </div>

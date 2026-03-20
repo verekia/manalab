@@ -123,6 +123,30 @@ function documentReducer(
       }
     }
 
+    case 'TRANSFORM_SUB_ITEM': {
+      const { entityId, layerId, sceneId, arrayField, itemIndex, positionField, position } = action
+      const layer = doc.sceneLayers[sceneId]?.[layerId]
+      if (!layer) return null
+      return {
+        ...doc,
+        sceneLayers: {
+          ...doc.sceneLayers,
+          [sceneId]: {
+            ...doc.sceneLayers[sceneId],
+            [layerId]: {
+              ...layer,
+              entities: layer.entities.map((e) => {
+                if (e.id !== entityId) return e
+                const arr = [...(e[arrayField] as Record<string, unknown>[] || [])]
+                arr[itemIndex] = { ...arr[itemIndex], [positionField]: position }
+                return { ...e, [arrayField]: arr }
+              }),
+            },
+          },
+        },
+      }
+    }
+
     case 'ADD_LAYER': {
       const { layer, sceneId } = action
       const scene = doc.project.scenes[sceneId]
@@ -202,19 +226,28 @@ function documentReducer(
 function uiReducer(ui: UIState, action: EditorAction): UIState {
   switch (action.type) {
     case 'SWITCH_SCENE':
-      return { ...ui, currentSceneId: action.sceneId, activeLayerId: '', selectedEntityId: null, placementTool: null }
+      return { ...ui, currentSceneId: action.sceneId, activeLayerId: '', selectedEntityId: null, selectedSubItem: null, placementTool: null }
     case 'SET_ACTIVE_LAYER':
-      return { ...ui, activeLayerId: action.layerId, selectedEntityId: null, placementTool: null }
+      return { ...ui, activeLayerId: action.layerId, selectedEntityId: null, selectedSubItem: null, placementTool: null }
     case 'SET_TRANSFORM_MODE':
       return { ...ui, transformMode: action.mode }
     case 'SET_PLACEMENT_TOOL':
-      return { ...ui, placementTool: action.tool, selectedEntityId: null }
+      return { ...ui, placementTool: action.tool, selectedEntityId: null, selectedSubItem: null }
     case 'SELECT_ENTITY':
-      return { ...ui, selectedEntityId: action.entityId, placementTool: action.entityId ? null : ui.placementTool }
+      return { ...ui, selectedEntityId: action.entityId, selectedSubItem: null, placementTool: action.entityId ? null : ui.placementTool }
+    case 'SELECT_SUB_ITEM':
+      return { ...ui, selectedSubItem: action.subItem }
     case 'TOGGLE_STAGE_EDITOR':
       return { ...ui, showStageEditor: !ui.showStageEditor }
     case 'TOGGLE_EXPORT_DIALOG':
       return { ...ui, showExportDialog: !ui.showExportDialog }
+    case 'TOGGLE_SUB_ITEM_VISIBILITY': {
+      const path = action.path
+      const hidden = ui.hiddenSubItems.includes(path)
+        ? ui.hiddenSubItems.filter((p) => p !== path)
+        : [...ui.hiddenSubItems, path]
+      return { ...ui, hiddenSubItems: hidden }
+    }
     case 'MARK_SAVED':
       return { ...ui, dirty: false }
     default:
