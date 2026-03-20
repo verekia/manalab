@@ -1,9 +1,9 @@
 {
-  "name": "goblin-editor",
+  "name": "manalab",
   "version": "0.0.1",
   "type": "module",
   "bin": {
-    "goblin": "./dist/cli.js"
+    "manalab": "./dist/cli.js"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",

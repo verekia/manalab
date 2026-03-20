@@ -1,4 +1,4 @@
-import { defineConfig } from 'goblin-editor'
+import { defineConfig } from 'manalab'
 
 export default defineConfig({
   assetLibrary: {

@@ -103,6 +103,19 @@ html, body, #root {
   gap: 8px;
 }
 
+.topbar-logo {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg-dark);
+  border: 3px solid transparent;
+  background-image: linear-gradient(var(--bg-dark), var(--bg-dark)),
+    conic-gradient(from 180deg, #6366f1, #8b5cf6, #d946ef, #f97316, #3b82f6, #6366f1);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  flex-shrink: 0;
+}
+
 .topbar-title {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -110,6 +123,7 @@ html, body, #root {
   color: var(--text);
   letter-spacing: 0.5px;
   margin-right: 8px;
+  word-spacing: -6px;
 }
 
 .topbar-group {

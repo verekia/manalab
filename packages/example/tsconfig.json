@@ -12,5 +12,5 @@
     "erasableSyntaxOnly": true,
     "resolveJsonModule": true
   },
-  "include": ["src", "goblin.config.ts"]
+  "include": ["src", "manalab.config.ts"]
 }

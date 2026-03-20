@@ -2,27 +2,27 @@ import type { Plugin, ViteDevServer } from 'vite'
 import path from 'path'
 import fs from 'fs'
 
-export function goblinConfigPlugin(projectRoot: string): Plugin {
+export function manalabConfigPlugin(projectRoot: string): Plugin {
   const sceneDataDir = path.resolve(projectRoot, 'scene-data')
 
   return {
-    name: 'goblin-config',
+    name: 'manalab-config',
 
     resolveId(id) {
-      if (id === 'virtual:goblin-config') {
-        return '\0virtual:goblin-config'
+      if (id === 'virtual:manalab-config') {
+        return '\0virtual:manalab-config'
       }
     },
 
     load(id) {
-      if (id === '\0virtual:goblin-config') {
-        const tsPath = path.resolve(projectRoot, 'goblin.config.ts')
-        const jsPath = path.resolve(projectRoot, 'goblin.config.js')
+      if (id === '\0virtual:manalab-config') {
+        const tsPath = path.resolve(projectRoot, 'manalab.config.ts')
+        const jsPath = path.resolve(projectRoot, 'manalab.config.js')
         const configPath = fs.existsSync(tsPath) ? tsPath : jsPath
 
         if (!fs.existsSync(configPath)) {
           throw new Error(
-            `Goblin Editor: No goblin.config.ts or goblin.config.js found in ${projectRoot}`
+            `Mana Lab: No manalab.config.ts or manalab.config.js found in ${projectRoot}`
           )
         }
 

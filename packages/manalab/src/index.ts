@@ -31,4 +31,4 @@ export type {
   StageGrid,
 } from './types'
 
-export { defineConfig, type GoblinConfig } from './config'
+export { defineConfig, type ManalabConfig } from './config'

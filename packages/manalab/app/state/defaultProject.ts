@@ -1,4 +1,4 @@
-import { config } from 'virtual:goblin-config'
+import { config } from 'virtual:manalab-config'
 import { EditorProject, EditorState, DocumentState, LayerData } from './types'
 
 export const defaultProject: EditorProject = {

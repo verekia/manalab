@@ -1,4 +1,4 @@
-# Goblin Editor
+# Mana Lab
 
 Schema-driven 3D scene editor for game development. Users define layer types, entity schemas, and asset libraries in a config file; the editor provides a Three.js viewport, inspector, entity list, and asset palette to place and edit entities visually. Data is saved as JSON files to disk.
 
@@ -6,26 +6,26 @@ Schema-driven 3D scene editor for game development. Users define layer types, en
 
 Monorepo with two packages (`packages/*` workspaces):
 
-- **`packages/goblin-editor`** — The editor library + CLI tool
+- **`packages/manalab`** — The editor library + CLI tool
 - **`packages/example`** — Example project using the editor
 
 ## Quick Start
 
 ```sh
-cd packages/goblin-editor && bun run build   # Build the library (tsup)
-cd packages/example && bun run goblin         # Start the editor (port 7320)
+cd packages/manalab && bun run build   # Build the library (tsup)
+cd packages/example && bun run manalab # Start the editor (port 7320)
 ```
 
 ## Architecture
 
-### Editor Package (`packages/goblin-editor`)
+### Editor Package (`packages/manalab`)
 
 **Published surface** (`src/`):
 - `src/types.ts` — All shared types (SchemaField union, Entity, LayerData, UIState, etc.)
 - `src/config.ts` — `defineConfig()` helper for type-safe config files
 - `src/index.ts` — Re-exports types
 - `src/cli.ts` — CLI entry point: starts Vite dev server with the editor app
-- `src/vite-plugin.ts` — Vite plugin that injects the user's `goblin.config.ts` as a virtual module
+- `src/vite-plugin.ts` — Vite plugin that injects the user's `manalab.config.ts` as a virtual module
 
 **Editor app** (`app/`):
 
@@ -57,7 +57,7 @@ Utilities:
 
 ### Example Package (`packages/example`)
 
-- `goblin.config.ts` — Defines asset library, scenes, layer types (decoration, collider, quest)
+- `manalab.config.ts` — Defines asset library, scenes, layer types (decoration, collider, quest)
 - `scene-data/*.json` — Persisted entity data per layer
 
 ## Key Concepts
@@ -83,4 +83,4 @@ Utilities:
 - The editor app runs via Vite dev server started by the CLI
 - `app/state/types.ts` just re-exports `src/types.ts` — edit the source in `src/`
 - Pre-existing TS5097 error in `app/main.tsx` (import with `.tsx` extension) — harmless, Vite handles it
-- Right panel width is persisted in localStorage (`goblin-right-panel-width`)
+- Right panel width is persisted in localStorage (`manalab-right-panel-width`)

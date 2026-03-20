@@ -73,7 +73,7 @@ async function saveLayersToDisk(
   }
 }
 
-const RIGHT_PANEL_KEY = 'goblin-right-panel-width'
+const RIGHT_PANEL_KEY = 'manalab-right-panel-width'
 const DEFAULT_RIGHT_WIDTH = 320
 const MIN_RIGHT_WIDTH = 220
 const MAX_RIGHT_WIDTH = 600
