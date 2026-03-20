@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useCallback, useRef } from 'react'
+import { useReducer, useEffect, useCallback, useRef, useState } from 'react'
 import { editorReducer } from './state/editorReducer'
 import { initialEditorState } from './state/defaultProject'
 import { generateId } from './lib/idGen'
@@ -73,9 +73,19 @@ async function saveLayersToDisk(
   }
 }
 
+const RIGHT_PANEL_KEY = 'goblin-right-panel-width'
+const DEFAULT_RIGHT_WIDTH = 320
+const MIN_RIGHT_WIDTH = 220
+const MAX_RIGHT_WIDTH = 600
+
 export default function App() {
   const [state, dispatch] = useReducer(editorReducer, initialEditorState)
   const savingRef = useRef(false)
+  const [rightWidth, setRightWidth] = useState(() => {
+    const saved = localStorage.getItem(RIGHT_PANEL_KEY)
+    return saved ? Math.max(MIN_RIGHT_WIDTH, Math.min(MAX_RIGHT_WIDTH, parseInt(saved, 10))) : DEFAULT_RIGHT_WIDTH
+  })
+  const draggingRef = useRef(false)
 
   // Load layer data from disk on mount
   useEffect(() => {
@@ -162,6 +172,36 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
 
+  const onResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    draggingRef.current = true
+    const startX = e.clientX
+    const startWidth = rightWidth
+
+    const onMouseMove = (ev: MouseEvent) => {
+      const delta = startX - ev.clientX
+      const newWidth = Math.max(MIN_RIGHT_WIDTH, Math.min(MAX_RIGHT_WIDTH, startWidth + delta))
+      setRightWidth(newWidth)
+    }
+
+    const onMouseUp = () => {
+      draggingRef.current = false
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseup', onMouseUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      setRightWidth((w) => {
+        localStorage.setItem(RIGHT_PANEL_KEY, String(w))
+        return w
+      })
+    }
+
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+    document.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseup', onMouseUp)
+  }, [rightWidth])
+
   // Entity count for status bar
   const sceneId = state.ui.currentSceneId
   const layerId = state.ui.activeLayerId
@@ -183,12 +223,15 @@ export default function App() {
           <ThreeViewport state={state} dispatch={dispatch} />
         </div>
 
-        <div className="right-panel">
-          {state.ui.showStageEditor ? (
-            <StageEditor state={state} dispatch={dispatch} />
-          ) : (
-            <InspectorPanel state={state} dispatch={dispatch} />
-          )}
+        <div className="right-panel-wrapper" style={{ width: rightWidth, minWidth: rightWidth }}>
+          <div className="right-panel-resize-handle" onMouseDown={onResizeStart} />
+          <div className="right-panel">
+            {state.ui.showStageEditor ? (
+              <StageEditor state={state} dispatch={dispatch} />
+            ) : (
+              <InspectorPanel state={state} dispatch={dispatch} />
+            )}
+          </div>
         </div>
       </div>
 

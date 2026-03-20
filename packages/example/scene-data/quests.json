@@ -12,17 +12,27 @@
         {
           "waypoint": [5, 0, 3],
           "goal": "Find the old map",
-          "dialogue": "The map should be near the large rock by the shore."
+          "dialogue": [
+            { "name": "Elder", "text": "The map should be near the large rock by the shore." },
+            { "name": "Player", "text": "I'll head there right away." }
+          ]
         },
         {
           "waypoint": [8, 0, 5],
           "goal": "Follow the trail",
-          "dialogue": "The trail leads deeper into the forest. Watch your step!"
+          "dialogue": [
+            { "name": "Guide", "text": "The trail leads deeper into the forest." },
+            { "name": "Guide", "text": "Watch your step, the path is treacherous." },
+            { "name": "Player", "text": "I can see markings on the trees." }
+          ]
         },
         {
           "waypoint": [12, 0, 8],
           "goal": "Retrieve the artifact",
-          "dialogue": "There it is! The ancient artifact, hidden among the roots."
+          "dialogue": [
+            { "name": "Player", "text": "There it is! Hidden among the roots." },
+            { "name": "Spirit", "text": "You have proven yourself worthy, traveler." }
+          ]
         }
       ]
     }

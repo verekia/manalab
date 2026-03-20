@@ -120,7 +120,14 @@ export default defineConfig({
           itemFields: {
             waypoint: { type: 'vec3', label: 'Waypoint', default: [0, 0, 0] },
             goal: { type: 'string', label: 'Goal', default: '' },
-            dialogue: { type: 'richtext', label: 'Dialogue', default: '' },
+            dialogue: {
+              type: 'array',
+              label: 'Dialogue',
+              itemFields: {
+                name: { type: 'string', label: 'Speaker', default: '' },
+                text: { type: 'string', label: 'Text', default: '' },
+              },
+            },
           },
         },
       },

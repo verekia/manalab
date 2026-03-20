@@ -61,12 +61,29 @@ html, body, #root {
   overflow: hidden;
 }
 
-.right-panel {
-  width: 270px;
-  min-width: 270px;
+.right-panel-wrapper {
+  display: flex;
+  position: relative;
   background: var(--bg-panel);
   border-left: 1px solid var(--border);
+}
+
+.right-panel-resize-handle {
+  width: 5px;
+  cursor: col-resize;
+  background: transparent;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.right-panel-resize-handle:hover {
+  background: var(--accent);
+}
+
+.right-panel {
+  flex: 1;
   overflow-y: auto;
+  min-width: 0;
 }
 
 /* ── Top Bar ─────────────────────────────────────────────── */
@@ -728,8 +745,18 @@ html, body, #root {
 /* ── Nested/Array Inspector Fields ────────────────────────── */
 .inspector-nested {
   border-left: 2px solid var(--border);
-  margin-left: 4px;
+  margin-left: 2px;
+  padding-left: 6px;
+}
+
+.inspector-nested .inspector-field {
   padding-left: 4px;
+  padding-right: 4px;
+}
+
+.inspector-nested .inspector-nested .inspector-field {
+  padding-left: 2px;
+  padding-right: 2px;
 }
 
 .inspector-textarea {
@@ -754,7 +781,7 @@ html, body, #root {
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: 4px;
-  margin: 4px 0;
+  margin: 3px 0;
   overflow: hidden;
 }
 
